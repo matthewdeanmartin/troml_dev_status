@@ -1,7 +1,3 @@
-[build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
-
 [project]
 name = "troml-dev-status"
 version = "0.1.0"
@@ -42,8 +38,7 @@ dependencies = [
 [dependency-groups]
 dev = [
     "types-PyYAML",
-    "troml;python_version>='3.10'",
-    "troml_dev_status",
+    "troml;python_version>='3.11'",
     "cli-tool-audit",
     "git2md; python_version >= '3.10'",
     "pyclean; python_version >= '3.12'",
@@ -76,7 +71,7 @@ dev = [
     "pytest-randomly>=3.15.0; python_version >= '3.8'",
     "pytest-sugar>=0.9.7; python_version >= '3.8'",
     "pytest-mock; python_version >= '3.8'",
-    "pytest-unused-fixtures; python_version >= '3.10'",
+    "pytest-unused-whichfixtures; python_version >= '3.10'",
     "hypothesis[cli]; python_version >= '3.8'",
     "detect-test-pollution",
     "pytest-timeout>=2.4.0",
@@ -102,7 +97,6 @@ issues = "https://github.com/matthewdeanmartin/troml_dev_status/issues/"
 [project.scripts]
 troml-dev-status = "troml_dev_status.cli:main"
 troml_dev_status = "troml_dev_status.cli:main"
-
 
 [build-system]
 requires = ["hatchling"]
