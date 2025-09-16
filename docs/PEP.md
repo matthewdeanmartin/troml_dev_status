@@ -12,14 +12,14 @@
 
 ## Abstract
 
-This PEP defines a **100% objective** method to **infer** one of the canonical PyPI “Development Status :: X – …”
+This PEP defines a **objective** method to **infer** one of the canonical PyPI “Development Status :: X – …”
 classifiers for a Python project **exclusively from code, version control history, and published release artifacts**
-—with **zero reliance on maintainer statements, intentions, or “vibes.”**
+—with **no reliance on maintainer statements, intentions, or “vibes.”** at the time of package publication.
 
 The rubric is deterministic, based on verifiable checks. It treats “Planning / Pre-Alpha / Alpha / Beta” as **counted
 checkboxes**, “Production/Stable” as **all-checks-passed product maturity**, “Mature” as **time-tested production**, and
 “Inactive” as **publication and maintenance SLA failures**—never on whether a repository is read-only or whether
-maintainers feel done.
+maintainers feel done. Inactive implies the last publication and is not a metric of release tempo.
 
 This PEP does **not** change Trove Classifier semantics managed by PyPI; it specifies a **repeatable algorithm** that
 tools may use to recommend a classifier.
@@ -98,20 +98,32 @@ have type annotations (static count via AST).
 
 **Q7. CHANGELOG present:** `CHANGELOG*` (or `NEWS*`) exists with ≥ **3** dated entries.
 
-### API Stability (Static Diff Across Releases)
-
-All API analysis is static: parse symbols exported under the top-level package from the **latest two distinct minor
-releases** (or latest two releases if only 0.x).
+### API Declaration
 
 Define **public symbol** = any name in `__all__`, or not prefixed `_`, from modules under the top-level package.
 
-**S1. No silent removals:** Between the last two releases, **≤ 5%** of public symbols removed or signature-incompatibly
-changed **without** a matching deprecation note (see D1).
+**S1. Declares dunder-all:** Dunder-init has dunder-all. Ideally, all modules have dunder-all. Dunder-all can be empty.
 
-**S2. Minor-to-minor compat:** If both releases are **≥1.0**, then **0%** breaking removals between **minor** versions (
-patches may fix only).
+## Completeness Metric
 
-**S3. Pre-1.0 tolerance:** If the latest is **<1.0**, removals ≤ **20%** between releases.
+A measure of how much of the codebase is **implemented vs. stubbed**. Completeness provides insight into whether the project is actively filled out or mostly placeholders.
+
+**Signals:**
+
+* **Cmpl1. TODO/FIXME/BUG markers.** Count occurrences in code and docs. Fail if >5 markers per 1kLOC.
+
+* **Cmpl2. NotImplemented usage.** Pass if <1% of functions/methods raise `NotImplementedError`. (Intentional abstract base classes may whitelist exceptions.)
+
+* **Cmpl3. Placeholder `pass`.** Pass if <5% of functions/methods are only `pass`. (Allow pass in class definitions for style.)
+
+* **Cmpl4. Stub files.** Fail if >10% of discovered `.py` files contain only stubs (e.g., <10 lines of code, mostly comments/`pass`).
+
+* **Cmpl5. Functionality coverage.** Pass if `tests/` exercises ≥50% of public modules (measured by import and symbol reference, not runtime coverage).
+
+**Completeness Score (0–5):** Sum of signals passed.
+
+Projects with low Completeness scores are objectively less likely to be usable, regardless of stated ambitions.
+
 
 ### Deprecation Hygiene (Static)
 
@@ -125,7 +137,7 @@ patches may fix only).
 
 **C1. SECURITY.md present:** `SECURITY.md` exists in repo root.
 
-**C2. Signed tags:** Latest release tag is signed (e.g., `git tag -v` succeeds).
+**C2. Trusted Publisher:** Latest package is published using pypi's trusted publisher feature.
 
 **C3. Minimal pin sanity:** Runtime dependencies in `pyproject.toml` avoid bare unconstrained `*`; each has at least a
 lower bound (e.g., `>=`).
@@ -154,16 +166,11 @@ When “Inactive” conditions are met, “Inactive” **overrides** all other c
 
 ### Inactive (override)
 
-Classify as **Development Status :: 7 – Inactive** iff **all** of:
-
-* **No PyPI release in ≥ 24 months** (R4 fails with a 24-month window), **and**
-
-* **No code commits touching `src/`** (or package dir) in ≥ **18 months** (M2 fails with 18-month window), **and**
-
-* **Current Python coverage (R6) fails**, i.e., the last release does **not** claim support for current-1 CPython minor.
-
-This uses only artifacts and time windows; it does **not** consider repository “archival” flags or maintainer
-statements.
+If you publish a package on pypi, it is active again. By definition, a just published packages is active again. You
+can't update a trove classifier without republishing a package. Inactive at best, is a signal that this is the last
+planned package ever. No static code analysis can determine the future or intentions of the maintainer. If a package 
+has no new versions for 100 years and a new package is published, maybe it will be published daily from then on, no
+one can tell from past history. If anything, a revived package wouldn't want to signal inactivity if it were to revive.
 
 ### Production/Stable
 
@@ -181,8 +188,12 @@ Classify as **Development Status :: 5 – Production/Stable** iff **all** of the
 
 * **Maintenance:** M1–M2, and **R4 within 12 months**
 
+* **Completeness** ≥4/5 must pass.
+
 > **Note on <1.0 “stable”:** If latest release is `<1.0`, you **cannot** be Production/Stable; require `>=1.0.0`. (
 > Objective, simple to verify.)
+
+
 
 ### Mature
 
@@ -209,17 +220,14 @@ of checks passed in this set:
 * **Alpha (3):** R1 passes, and \*\*EPS ∈ \[7, 11]`, version `<1.0.0\`.
 
 * **Beta (4):** R1 passes, and \*\*EPS ∈ \[12, |EPS\_SET|]`, version `<1.0.0\`, and **S3** holds (pre-1.0 churn ≤ 20%)
-  and **R4 within 12 months**.
+  and **R4 within 12 months**.  Must pass ≥3/5 of completeness tests.
 
 > Rationale: Early phases are expressed as **how many boxes you’ve objectively checked**. Beta adds an extra guard for
 > manageable API churn and current activity.
 
 ### Tie-Breaking & Unknown
 
-* If a project meets **Production** but also matches **Inactive**, **Inactive overrides**.
-
-* If a project fails **R1** (no PyPI release), it is **Unclassifiable by this PEP** (tool should return “No Status — Not
-  Published to PyPI”).
+* If a project fails **R1** (no PyPI release), it is **Planning**.
 
 ## Algorithm (Deterministic)
 
@@ -294,7 +302,7 @@ implement; maintainers remain free to declare any classifier.
 
 * **Docs/CI detection:** Static presence checks for configs and docs.
 
-* **Security bits:** Check `SECURITY.md`; verify signed tags via `git tag -v`.
+* **Security bits:** Check `SECURITY.md`; use trusted publisher.
 
 * **Constraints:** Never run code; only static inspection.
 
@@ -303,8 +311,6 @@ implement; maintainers remain free to declare any classifier.
 * Do not execute downloaded artifacts or repo code.
 
 * Verify downloaded files’ hashes; prefer PyPI’s hashes.
-
-* Tag verification requires configured keys; if verification is impossible, mark **C2 fail**.
 
 ## Rationale & Alternatives
 
@@ -330,7 +336,7 @@ implement; maintainers remain free to declare any classifier.
 
 * **Project age:** ≥90 days since first PyPI release for M1.
 
-* **Signed tags:** Latest release tag must be signed; inability to verify counts as fail.
+* **Trusted Publisher:** Latest release tag must use trusted-publisher; inability to verify counts as fail.
 
 ---
 

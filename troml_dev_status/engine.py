@@ -9,7 +9,9 @@ from typing import Dict
 from troml_dev_status.analysis import filesystem, pypi
 from troml_dev_status.analysis.bureaucracy import get_bureaucracy_files
 from troml_dev_status.checks import (
+    check_c2_code_attestations,
     check_c3_minimal_pin_sanity,
+    check_c4_repro_inputs,
     check_m1_project_age,
     check_m2_code_motion,
     check_q1_ci_config_present,
@@ -19,7 +21,10 @@ from troml_dev_status.checks import (
     check_q6_docs_present,
     check_r1_published_at_least_once,
     check_r2_wheel_sdist_present,
+    check_r3_pep440_versioning,
     check_r4_recent_activity,
+    check_r5_python_version_declaration,
+    check_r6_current_python_coverage,
 )
 from troml_dev_status.models import CheckResult, EvidenceReport, Metrics
 
@@ -45,9 +50,9 @@ def run_analysis(repo_path: Path, project_name: str) -> EvidenceReport:
             pypi_data or {}, latest_version, months=12
         )
     # Stubs for other R checks
-    results["R3"] = CheckResult(passed=False, evidence="Not implemented.")
-    results["R5"] = CheckResult(passed=False, evidence="Not implemented.")
-    results["R6"] = CheckResult(passed=False, evidence="Not implemented.")
+    results["R3"] = check_r3_pep440_versioning(pypi_data)
+    results["R5"] = check_r5_python_version_declaration(repo_path, pypi_data)
+    results["R6"] = check_r6_current_python_coverage(pypi_data or {})
     results["R7"] = CheckResult(passed=False, evidence="Not implemented.")
 
     # Q-Checks (Quality)
@@ -78,9 +83,9 @@ def run_analysis(repo_path: Path, project_name: str) -> EvidenceReport:
         passed=len(get_bureaucracy_files(repo_path, categories=["security"])) >= 1,
         evidence="Checked for security files",
     )
-    results["C2"] = CheckResult(passed=False, evidence="Not implemented.")
+    results["C2"] = check_c2_code_attestations(project_name)
     results["C3"] = check_c3_minimal_pin_sanity(repo_path, analysis_mode)
-    results["C4"] = CheckResult(passed=False, evidence="Not implemented.")
+    results["C4"] = check_c4_repro_inputs(repo_path)
 
     # M-Checks (Maintenance)
     if pypi_data:

@@ -79,3 +79,10 @@ The tool also prints a detailed JSON object containing the results of every chec
 ## Snyk Security Pages
 
 - [troml_dev_status](https://security.snyk.io/package/pip/troml_dev_status)
+
+## Prior Art
+
+- [check-python-versions](https://pypi.org/project/check-python-versions/)
+- [pyproject-fmt](https://pypi.org/project/pyproject-fmt/)
+- [troml](https://pypi.org/project/troml/)
+- [pyroma](https://pypi.org/project/pyroma/)

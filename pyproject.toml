@@ -1,6 +1,6 @@
 [project]
 name = "troml-dev-status"
-version = "0.1.0"
+version = "0.2.0"
 description = "Objectively infer PyPI Development Status classifiers from code and release artifacts."
 readme = "README.md"
 authors = [
@@ -9,21 +9,11 @@ authors = [
     { name = "ChatGPT" },
 ]
 requires-python = ">=3.9"
-classifiers = [
-    "Development Status :: 1 - Planning",
-    "Environment :: Console",
-    "Framework :: Pydantic",
-    "Intended Audience :: Developers",
-    "Programming Language :: Python",
-    "Programming Language :: Python :: 3.9",
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
-    "Programming Language :: Python :: 3.12",
-    "Programming Language :: Python :: 3.13",
-    "Programming Language :: Python :: 3.14",
-    "Programming Language :: Python :: 3.15",
-    "Topic :: Software Development :: Quality Assurance",
-]
+classifiers = ["Development Status :: 3 - Alpha",
+    "Environment :: Console", "Framework :: Pydantic",
+    "Intended Audience :: Developers", "Programming Language :: Python", "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10", "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12", "Programming Language :: Python :: 3.13", "Programming Language :: Python :: 3.14", "Programming Language :: Python :: 3.15", "Topic :: Software Development :: Quality Assurance"]
 
 
 dependencies = [
@@ -32,11 +22,14 @@ dependencies = [
     "httpx[http2]>=0.28.1",
     "pyyaml>=6.0.2",
     "packaging>=25.0",
-    "tomli; python_version < '3.11'"
+    "tomli; python_version < '3.11'",
+    "tomlkit>=0.13.3",
+    "pyproject-fmt"
 ]
 
 [dependency-groups]
 dev = [
+    "bitrab",
     "types-PyYAML",
     "troml;python_version>='3.11'",
     "cli-tool-audit",

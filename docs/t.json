@@ -1,0 +1,158 @@
+{
+  'info': {
+    'author': 'Gemini, ChatGPT',
+    'author_email': 'Matthew Dean Martin <matthewdeanmartin@gmail.com>',
+    'bugtrack_url': None,
+    'classifiers': [
+      'Development Status :: 1 - Planning',
+      'Environment :: Console',
+      'Framework :: Pydantic',
+      'Intended Audience :: Developers',
+      'Programming Language :: Python',
+      'Programming Language :: Python :: 3.10',
+      'Programming Language :: Python :: 3.11',
+      'Programming Language :: Python :: 3.12',
+      'Programming Language :: Python :: 3.13',
+      'Programming Language :: Python :: 3.14',
+      'Programming Language :: Python :: 3.15',
+      'Programming Language :: Python :: 3.9',
+      'Topic :: Software Development :: Quality Assurance'
+    ],
+    'description': '# troml_dev_status\nProject inspired by troml to suggest a Development Status based solely on objective criteria.\n\nA tool to objectively infer PyPI "Development Status" classifiers from code and release artifacts, based on the \n[draft PEP ∞](docs/PEP.md).\n\n## Installation\n\n```bash\npip install troml-dev-status\n````\n\n## Usage\n\nRun the tool against a local Git repository that has a `pyproject.toml` file.\n\n```bash\ntroml-dev-status /path/to/your/project\n```\n\nThe tool will analyze the project\'s PyPI releases, Git history, and source code to produce an evidence-based "Development Status" classifier.\n\n## Output\n\nThe tool outputs a human-readable summary table and a machine-readable JSON report.\n\n### Example Human-Readable Output\n\n```\n┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n┃ Check ID                         ┃ Status ┃ Evidence                                    ┃\n┡━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩\n│ R1. Published at least once      │   ✅   │ Found 15 releases on PyPI for \'my-package\'  │\n│ R2. Wheel + sdist present        │   ✅   │ Latest release 1.2.3 has wheel and sdist    │\n│ ...                              │   ...  │ ...                                         │\n│ Q5. Type hints shipped           │   ❌   │ 45.8% of 120 public symbols are annotated   │\n│ ...                              │   ...  │ ...                                         │\n└──────────────────────────────────┴────────┴─────────────────────────────────────────────┘\n          Final Inferred Classifier: Development Status :: 4 - Beta\n Reason: EPS=16/19; version 0.8.0 < 1.0.0; recent release (35 days ago)\n```\n\n### Example JSON Output\n\nThe tool also prints a detailed JSON object containing the results of every check.\n\n```json\n{\n  "inferred_classifier": "Development Status :: 4 - Beta",\n  "evaluated_at": "2025-09-14T20:00:00.123456Z",\n  "checks": {\n    "R1": {\n      "passed": true,\n      "evidence": "Found 15 releases on PyPI for \'my-package\'"\n    },\n    "...": {}\n  },\n  "metrics": {\n    "eps_score": 16,\n    "eps_total": 19\n  }\n}\n```\n\n## Project Health\n\n| Metric         | Status |\n|----------------|--------|\n| Coverage       | [![codecov](https://codecov.io/gh/matthewdeanmartin/troml_dev_status/branch/main/graph/badge.svg)](https://codecov.io/gh/matthewdeanmartin/troml_dev_status) |\n| Docs           | [![Docs](https://readthedocs.org/projects/troml_dev_status/badge/?version=latest)](https://troml_dev_status.readthedocs.io/en/latest/) |\n| PyPI           | [![PyPI](https://img.shields.io/pypi/v/troml_dev_status)](https://pypi.org/project/troml_dev_status/) |\n| Downloads      | [![Downloads](https://static.pepy.tech/personalized-badge/troml_dev_status?period=total&units=international_system&left_color=grey&right_color=blue&left_text=Downloads)](https://pepy.tech/project/troml_dev_status) |\n| License        | [![License](https://img.shields.io/github/license/matthewdeanmartin/troml_dev_status)](https://github.com/matthewdeanmartin/troml_dev_status/blob/main/LICENSE.md) |\n| Last Commit    | ![Last Commit](https://img.shields.io/github/last-commit/matthewdeanmartin/troml_dev_status) |\n\n## Libray info pages\n- [troml_dev_status](https://libraries.io/pypi/troml_dev_status)\n\n## Snyk Security Pages\n\n- [troml_dev_status](https://security.snyk.io/package/pip/troml_dev_status)',
+    'description_content_type': 'text/markdown',
+    'docs_url': None,
+    'download_url': None,
+    'downloads': {
+      'last_day': -1,
+      'last_month': -1,
+      'last_week': -1
+    },
+    'dynamic': None,
+    'home_page': None,
+    'keywords': None,
+    'license': None,
+    'license_expression': None,
+    'license_files': [
+      'LICENSE'
+    ],
+    'maintainer': None,
+    'maintainer_email': None,
+    'name': 'troml-dev-status',
+    'package_url': 'https://pypi.org/project/troml-dev-status/',
+    'platform': None,
+    'project_url': 'https://pypi.org/project/troml-dev-status/',
+    'project_urls': {
+      'Changelog': 'https://github.com/matthewdeanmartin/troml_dev_status/blob/main/CHANGELOG.md',
+      'Repository': 'https://github.com/matthewdeanmartin/troml_dev_status',
+      'homepage': 'https://github.com/matthewdeanmartin/troml_dev_status',
+      'issues': 'https://github.com/matthewdeanmartin/troml_dev_status/issues/'
+    },
+    'provides_extra': None,
+    'release_url': 'https://pypi.org/project/troml-dev-status/0.1.0/',
+    'requires_dist': [
+      'httpx[http2]>=0.28.1',
+      'packaging>=25.0',
+      'pydantic>=2.11.9',
+      'pyyaml>=6.0.2',
+      'rich>=14.1.0',
+      'tomli; python_version < "3.11"'
+    ],
+    'requires_python': '>=3.9',
+    'summary': 'Objectively infer PyPI Development Status classifiers from code and release artifacts.',
+    'version': '0.1.0',
+    'yanked': False,
+    'yanked_reason': None
+  },
+  'last_serial': 31271967,
+  'releases': {
+    '0.1.0': [
+      {
+        'comment_text': None,
+        'digests': {
+          'blake2b_256': '44fe6a32c033a7434f840fc9e09ef0d6df17e1690ac12c99a158c29e60f6d56f',
+          'md5': '1c3db94ee1a5998d9ba832f562507e94',
+          'sha256': '3fd513781deac15627a4354c6facf265b1504b93dc9f2e5e7d4d04e00a6aca67'
+        },
+        'downloads': -1,
+        'filename': 'troml_dev_status-0.1.0-py3-none-any.whl',
+        'has_sig': False,
+        'md5_digest': '1c3db94ee1a5998d9ba832f562507e94',
+        'packagetype': 'bdist_wheel',
+        'python_version': 'py3',
+        'requires_python': '>=3.9',
+        'size': 21021,
+        'upload_time': '2025-09-16T01:46:44',
+        'upload_time_iso_8601': '2025-09-16T01:46:44.340097Z',
+        'url': 'https://files.pythonhosted.org/packages/44/fe/6a32c033a7434f840fc9e09ef0d6df17e1690ac12c99a158c29e60f6d56f/troml_dev_status-0.1.0-py3-none-any.whl',
+        'yanked': False,
+        'yanked_reason': None
+      },
+      {
+        'comment_text': None,
+        'digests': {
+          'blake2b_256': 'b22b5b4ac324caf4d99c5a4c86ce4539f9f775b8054aca8a8a2df1269ee7162d',
+          'md5': 'af7ed739a9a82d7d320a112ce907b777',
+          'sha256': '14739785d7bf13c6545005b30adc05373e56c48a42779b619e50aee52d6115b4'
+        },
+        'downloads': -1,
+        'filename': 'troml_dev_status-0.1.0.tar.gz',
+        'has_sig': False,
+        'md5_digest': 'af7ed739a9a82d7d320a112ce907b777',
+        'packagetype': 'sdist',
+        'python_version': 'source',
+        'requires_python': '>=3.9',
+        'size': 18205,
+        'upload_time': '2025-09-16T01:46:45',
+        'upload_time_iso_8601': '2025-09-16T01:46:45.844077Z',
+        'url': 'https://files.pythonhosted.org/packages/b2/2b/5b4ac324caf4d99c5a4c86ce4539f9f775b8054aca8a8a2df1269ee7162d/troml_dev_status-0.1.0.tar.gz',
+        'yanked': False,
+        'yanked_reason': None
+      }
+    ]
+  },
+  'urls': [
+    {
+      'comment_text': None,
+      'digests': {
+        'blake2b_256': '44fe6a32c033a7434f840fc9e09ef0d6df17e1690ac12c99a158c29e60f6d56f',
+        'md5': '1c3db94ee1a5998d9ba832f562507e94',
+        'sha256': '3fd513781deac15627a4354c6facf265b1504b93dc9f2e5e7d4d04e00a6aca67'
+      },
+      'downloads': -1,
+      'filename': 'troml_dev_status-0.1.0-py3-none-any.whl',
+      'has_sig': False,
+      'md5_digest': '1c3db94ee1a5998d9ba832f562507e94',
+      'packagetype': 'bdist_wheel',
+      'python_version': 'py3',
+      'requires_python': '>=3.9',
+      'size': 21021,
+      'upload_time': '2025-09-16T01:46:44',
+      'upload_time_iso_8601': '2025-09-16T01:46:44.340097Z',
+      'url': 'https://files.pythonhosted.org/packages/44/fe/6a32c033a7434f840fc9e09ef0d6df17e1690ac12c99a158c29e60f6d56f/troml_dev_status-0.1.0-py3-none-any.whl',
+      'yanked': False,
+      'yanked_reason': None
+    },
+    {
+      'comment_text': None,
+      'digests': {
+        'blake2b_256': 'b22b5b4ac324caf4d99c5a4c86ce4539f9f775b8054aca8a8a2df1269ee7162d',
+        'md5': 'af7ed739a9a82d7d320a112ce907b777',
+        'sha256': '14739785d7bf13c6545005b30adc05373e56c48a42779b619e50aee52d6115b4'
+      },
+      'downloads': -1,
+      'filename': 'troml_dev_status-0.1.0.tar.gz',
+      'has_sig': False,
+      'md5_digest': 'af7ed739a9a82d7d320a112ce907b777',
+      'packagetype': 'sdist',
+      'python_version': 'source',
+      'requires_python': '>=3.9',
+      'size': 18205,
+      'upload_time': '2025-09-16T01:46:45',
+      'upload_time_iso_8601': '2025-09-16T01:46:45.844077Z',
+      'url': 'https://files.pythonhosted.org/packages/b2/2b/5b4ac324caf4d99c5a4c86ce4539f9f775b8054aca8a8a2df1269ee7162d/troml_dev_status-0.1.0.tar.gz',
+      'yanked': False,
+      'yanked_reason': None
+    }
+  ],
+  'vulnerabilities': []
+}

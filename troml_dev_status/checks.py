@@ -8,10 +8,13 @@ from __future__ import annotations
 import re
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+from typing import Tuple
 
 from packaging.requirements import InvalidRequirement, Requirement
-from packaging.version import Version
+from packaging.specifiers import SpecifierSet
+from packaging.version import InvalidVersion, Version
 
+from troml_dev_status.analysis import filesystem
 from troml_dev_status.analysis.filesystem import (
     analyze_type_hint_coverage,
     count_source_modules,
@@ -21,7 +24,9 @@ from troml_dev_status.analysis.filesystem import (
     get_project_dependencies,
 )
 from troml_dev_status.analysis.git import get_latest_commit_date
+from troml_dev_status.analysis.pypi import latest_release_has_attestations
 from troml_dev_status.models import CheckResult
+from troml_dev_status.utils.support_per_endoflife import fetch_latest_supported_minor
 
 # --- Check Functions ---
 
@@ -260,6 +265,19 @@ def check_m2_code_motion(repo_path: Path, months: int) -> CheckResult:
     )
 
 
+def check_c2_code_attestations(package_name: str) -> CheckResult:
+    data = latest_release_has_attestations(package_name) or {}
+    if data["all_files_attested"]:
+        return CheckResult(
+            passed=True,
+            evidence="All files in most recent package are attested.",
+        )
+    return CheckResult(
+        passed=False,
+        evidence=f"{len([data.get('files', [])])} files, at least some unattested.",
+    )
+
+
 def check_c3_minimal_pin_sanity(repo_path: Path, mode: str) -> CheckResult:
     """
     Checks runtime dependencies for minimal pinning.
@@ -319,4 +337,256 @@ def check_c3_minimal_pin_sanity(repo_path: Path, mode: str) -> CheckResult:
     return CheckResult(
         passed=False,
         evidence=f"Found {len(failed_deps)} not strictly pinned somehow: {', '.join(failed_deps)}.",
+    )
+
+
+# --- Helper Functions ---
+
+
+def _get_current_supported_python_minor() -> Tuple[int, int]:
+    """
+    Placeholder function as requested by the user.
+    Returns the (major, minor) version of Python that is "current-1".
+    For example, if 3.14 is current, this returns (3, 13).
+    """
+    # This would be updated based on the current Python release cycle.
+    # As of late 2025, assuming 3.14 is current, so 3.13 is the target for "current-1".
+    return 3, 13
+
+
+# --- Check Implementations ---
+
+
+def check_r3_pep440_versioning(pypi_data: dict | None) -> CheckResult:
+    """
+    Checks if all release versions on PyPI are valid PEP 440.
+    The "strictly increasing" part of the PEP is interpreted as all versions
+    being valid and sortable, as PyPI upload order isn't guaranteed.
+    """
+    if not pypi_data or "releases" not in pypi_data:
+        return CheckResult(passed=False, evidence="No PyPI data available.")
+
+    version_strings = list(pypi_data["releases"].keys())
+    if not version_strings:
+        return CheckResult(passed=False, evidence="No releases found in PyPI data.")
+
+    invalid_versions = []
+    for v_str in version_strings:
+        try:
+            Version(v_str)
+        except InvalidVersion:
+            invalid_versions.append(v_str)
+
+    if invalid_versions:
+        return CheckResult(
+            passed=False,
+            evidence=f"Found {len(invalid_versions)} invalid PEP 440 versions: {', '.join(invalid_versions)}",
+        )
+
+    return CheckResult(
+        passed=True,
+        evidence=f"All {len(version_strings)} release versions are valid PEP 440.",
+    )
+
+
+def check_r5_python_version_declaration(
+    repo_path: Path, pypi_data: dict | None
+) -> CheckResult:
+    """
+    Checks for Requires-Python in pyproject.toml and a Python trove classifier on PyPI.
+    """
+    # 1. Check pyproject.toml for requires-python
+    toml_path = repo_path / "pyproject.toml"
+    requires_python_str = None
+    has_requires_python = False
+    if toml_path.exists():
+        try:
+            with toml_path.open("rb") as f:
+                data = filesystem.tomllib.load(f)
+            requires_python_str = data.get("project", {}).get("requires-python")
+            has_requires_python = bool(requires_python_str)
+        except filesystem.tomllib.TOMLDecodeError:
+            requires_python_str = "[could not parse toml]"
+
+    # 2. Check PyPI for a trove classifier
+    has_trove_classifier = False
+    if pypi_data:
+        classifiers = pypi_data.get("info", {}).get("classifiers", [])
+        has_trove_classifier = any(
+            c.startswith("Programming Language :: Python :: 3") for c in classifiers
+        )
+
+    # 3. Evaluate results
+    if has_requires_python and has_trove_classifier:
+        return CheckResult(
+            passed=True,
+            evidence=f"Found 'requires-python: {requires_python_str}' and a Python trove classifier.",
+        )
+
+    failures = []
+    if not has_requires_python:
+        failures.append("'project.requires-python' not found in pyproject.toml")
+    if not has_trove_classifier:
+        failures.append(
+            "No 'Programming Language :: Python :: 3' classifier found on PyPI"
+        )
+
+    return CheckResult(passed=False, evidence="; ".join(failures))
+
+
+def _python_minor_classifiers(classifiers: list[str]) -> list[str]:
+    return [
+        c for c in classifiers if c.startswith("Programming Language :: Python :: 3.")
+    ]
+
+
+def check_r6_current_python_coverage(
+    pypi_data: dict,
+    *,
+    timeout: float = 10.0,
+) -> CheckResult:
+    """
+    R6. Current Python coverage: Declared support includes current-1 CPython minor.
+    Example: if current is 3.13, must include >= 3.12.
+
+    Passes if either:
+      - Trove classifiers include "Programming Language :: Python :: 3.<current-1>"
+      - OR requires_python spec includes Version("3.<current-1>.0")
+    """
+    try:
+        latest_minor, sources = fetch_latest_supported_minor(timeout=timeout)
+    except Exception as e:
+        return CheckResult(
+            passed=False,
+            evidence=f"Failed to determine current CPython version from network: {e}",
+        )
+
+    target_minor = latest_minor - 1
+    if target_minor < 0:
+        return CheckResult(
+            passed=False,
+            evidence=f"Computed invalid target minor from latest=3.{latest_minor}",
+        )
+
+    info = pypi_data.get("info", {}) or {}
+    classifiers: list[str] = info.get("classifiers", []) or []
+    requires_python: str | None = info.get("requires_python")
+
+    # 1) Exact Trove classifier match for the target minor
+    target_classifier = f"Programming Language :: Python :: 3.{target_minor}"
+    has_classifier = any(c.strip() == target_classifier for c in classifiers)
+
+    # 2) requires_python includes 3.<target_minor>.0
+    has_requires = False
+    requires_eval_note = ""
+    if requires_python:
+        try:
+            spec = SpecifierSet(requires_python)
+            has_requires = Version(f"3.{target_minor}.0") in spec
+        except Exception as e:
+            requires_eval_note = f" (requires_python unparsable: {e})"
+
+    if has_classifier or has_requires:
+        reason = []
+        if has_classifier:
+            reason.append(f"classifier {target_classifier!r} present")
+        if has_requires:
+            reason.append(
+                f"requires_python {requires_python!r} includes 3.{target_minor}.x"
+            )
+        return CheckResult(
+            passed=True,
+            evidence=(
+                f"Current CPython is 3.{latest_minor}; rule requires ≥3.{target_minor}. "
+                f"Declared support satisfies via {', '.join(reason)}. "
+                f"Sources: {', '.join(sources)}"
+            ),
+        )
+
+    # Prepare helpful evidence
+    declared_py_classifiers = (
+        ", ".join(sorted(_python_minor_classifiers(classifiers))) or "none"
+    )
+    req_str = requires_python if requires_python else "none"
+
+    return CheckResult(
+        passed=False,
+        evidence=(
+            f"Current CPython is 3.{latest_minor}; rule requires declared support for ≥3.{target_minor}. "
+            f"Missing classifier {target_classifier!r} and requires_python does not include 3.{target_minor}.x{requires_eval_note}. "
+            f"Declared Python classifiers: {declared_py_classifiers}. requires_python: {req_str!r}. "
+            f"Source: https://endoflife.date/api/python.json"
+        ),
+    )
+
+
+# def check_r6_current_python_coverage(repo_path: Path) -> CheckResult:
+#     """
+#     Checks if declared Python support includes the 'current-1' CPython minor version.
+#     """
+#     toml_path = repo_path / "pyproject.toml"
+#     if not toml_path.exists():
+#         return CheckResult(passed=False, evidence="pyproject.toml not found.")
+#
+#     requires_python_str = None
+#     try:
+#         with toml_path.open("rb") as f:
+#             data = filesystem.tomllib.load(f)
+#         requires_python_str = data.get("project", {}).get("requires-python")
+#     except filesystem.tomllib.TOMLDecodeError:
+#         return CheckResult(passed=False, evidence="Could not parse pyproject.toml.")
+#
+#     if not requires_python_str:
+#         return CheckResult(
+#             passed=False,
+#             evidence="'project.requires-python' not found in pyproject.toml.",
+#         )
+#
+#     try:
+#         spec_set = SpecifierSet(requires_python_str)
+#     except InvalidSpecifier:
+#         return CheckResult(
+#             passed=False, evidence=f"Invalid specifier string: '{requires_python_str}'"
+#         )
+#
+#     target_major, target_minor = _get_current_supported_python_minor()
+#     target_version_str = f"{target_major}.{target_minor}"
+#
+#     if spec_set.contains(target_version_str):
+#         return CheckResult(
+#             passed=True,
+#             evidence=f"'{requires_python_str}' supports current-1 Python ({target_version_str}).",
+#         )
+#
+#     return CheckResult(
+#         passed=False,
+#         evidence=f"'{requires_python_str}' does not support current-1 Python ({target_version_str}).",
+#     )
+
+
+def check_c4_repro_inputs(repo_path: Path) -> CheckResult:
+    """
+    Checks for the presence of a lockfile for reproducible development environments.
+    """
+    lockfiles = {
+        "uv.lock": "uv lockfile",
+        "poetry.lock": "Poetry lockfile",
+        "constraints.txt": "pip constraints file",
+    }
+
+    # Check for exact matches
+    for fname, desc in lockfiles.items():
+        if (repo_path / fname).exists():
+            return CheckResult(passed=True, evidence=f"Found {desc} ('{fname}').")
+
+    # Check for glob patterns like requirements*.txt
+    req_files = list(repo_path.glob("requirements*.txt"))
+    if req_files:
+        return CheckResult(
+            passed=True, evidence=f"Found pip requirements file: '{req_files[0].name}'."
+        )
+
+    return CheckResult(
+        passed=False,
+        evidence="No lockfile found (e.g., uv.lock, poetry.lock, requirements*.txt, constraints.txt).",
     )

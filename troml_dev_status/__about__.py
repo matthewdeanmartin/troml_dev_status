@@ -10,8 +10,8 @@ __all__ = [
 ]
 
 __title__ = "troml-dev-status"
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 __description__ = "Objectively infer PyPI Development Status classifiers from code and release artifacts."
 __readme__ = "README.md"
 __requires_python__ = ">=3.9"
-__status__ = "1 - Planning"
+__status__ = "3 - Alpha"

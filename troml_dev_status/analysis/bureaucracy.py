@@ -221,31 +221,6 @@ def scan_bureaucracy(
     - Deduplicates paths per category and overall (no duplicates across categories for the same file).
       (If a file matches multiple categories, it is assigned to the first category in CATEGORIES order.)
     """
-    # compiled = _compile_registry(include_categories, exclude_categories)
-    # found_by_cat: MutableMapping[str, List[Path]] = {cat: [] for cat in compiled.keys()}
-    # seen: Set[Path] = set()
-    #
-    # # rglob all files (not directories); filter with our compiled patterns.
-    # for p in repo_path.rglob("*"):
-    #     try:
-    #         is_file = p.is_file() if not follow_symlinks else p.is_file() or p.is_symlink()
-    #     except OSError:
-    #         continue  # permissions/broken links
-    #     if not is_file:
-    #         continue
-    #
-    #     # Assign to first matching category in our canonical category order
-    #     for cat in (c for c in CATEGORIES if c in compiled):
-    #         if _match_category(cat, compiled, p):
-    #             if p not in seen:
-    #                 found_by_cat[cat].append(p)
-    #                 seen.add(p)
-    #             break
-    # Sort paths within each category (stable, user friendly)
-    # for cat in found_by_cat:
-    #     found_by_cat[cat].sort(key=lambda x: x.as_posix().lower())
-    #
-    # return dict(found_by_cat)
 
     compiled = _compile_registry(include_categories, exclude_categories)
     found_by_cat: dict[str, list[Path]] = {cat: [] for cat in compiled}
@@ -290,7 +265,6 @@ def get_bureaucracy_files(
     for cat in CATEGORIES:
         if cat in mapping:
             ordered.extend(mapping[cat])
-    print(ordered)
     return ordered
 
 

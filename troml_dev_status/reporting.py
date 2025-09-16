@@ -29,7 +29,7 @@ CHECK_DESCRIPTIONS = {
     "S3": "Pre-1.0 API Churn",
     "D1": "Deprecation Policy Evidence",
     "C1": "SECURITY.md Present",
-    "C2": "Signed Release Tags",
+    "C2": "Trusted Publisher",
     "C3": "Dependencies Pinned",
     "C4": "Reproducible Dev Env",
     "M1": "Project Age",
@@ -68,7 +68,12 @@ def print_human_report(report: EvidenceReport):
 
     for check_id_full in check_order:
         result = report.checks[check_id_full]
-        status_icon = "✅" if result.passed else "❌"
+        # status_icon = "✅" if result.passed else "❌"
+        status_icon = "OK" if result.passed else "X"
+
+        status_icon = (
+            "[bold green]OK[/bold green]" if result.passed else "[bold red]X[/bold red]"
+        )
 
         # Get the base ID (e.g., 'R4' from 'R4 (12mo)') for the description lookup
         base_check_id = check_id_full.split(" ")[0]
