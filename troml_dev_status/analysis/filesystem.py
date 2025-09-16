@@ -7,7 +7,7 @@ import ast
 try:
     import tomllib
 except ImportError:
-    import tomli as tomllib
+    import tomli as tomllib # typing: ignore[no-redef]
 
 from pathlib import Path
 
