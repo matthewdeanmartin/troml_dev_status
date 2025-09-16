@@ -12,7 +12,7 @@ endif
 
 uv.lock: pyproject.toml
 	@echo "Installing dependencies"
-	@uv sync --all-extras
+	@uv sync
 
 clean-pyc:
 	@echo "Removing compiled files"
@@ -142,4 +142,4 @@ issues:
 
 core_all_tests:
 	./scripts/exercise_core_all.sh troml_dev_status "compile --in examples/compile/src --out examples/compile/out --dry-run"
-	uv sync --all-extras
+	uv sync

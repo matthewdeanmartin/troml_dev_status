@@ -30,7 +30,7 @@ jobs:
           pipx install pylint && pipx install pre-commit && pipx install poetry && pipx install hatch
 
       - name: Install Dependencies
-        run: uv sync --all-extras
+        run: uv sync
 
       - name: Shred-Compile-Run
         run: chmod +x scripts/*.sh && ./scripts/dogfood.sh

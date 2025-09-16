@@ -16,7 +16,7 @@ _default: check
 # ---- Dependencies / Setup ----
 uv-lock:
     @echo "Installing dependencies"
-    {{venv}} uv sync --all-extras --no-progress
+    {{venv}} uv sync --no-progress
 
 clean-pyc:
     @echo "Removing compiled files"
