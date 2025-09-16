@@ -3,11 +3,12 @@
 from __future__ import annotations
 
 import ast
+
 # Use tomllib for Python 3.11+, fallback to tomli for older versions
 try:
     import tomllib
 except ImportError:
-    import tomli as tomllib # type: ignore[no-redef,import-not-found]
+    import tomli as tomllib  # type: ignore[no-redef,import-not-found]
 
 from pathlib import Path
 

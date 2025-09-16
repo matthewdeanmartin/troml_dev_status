@@ -79,7 +79,7 @@ test: clean uv-lock install-plugins
       --cov=troml_dev_status --cov-report=html --cov-fail-under 18 --cov-branch \
       --cov-report=xml --junitxml=junit.xml -o junit_family=legacy \
       --timeout=5 --session-timeout=600
-    {{venv}} bash basic_checks.sh
+    {{venv}} bash ./scripts/basic_checks.sh
 
 # =========================
 # Normal mode (sequential, laptop-friendly)
