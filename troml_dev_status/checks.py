@@ -8,7 +8,6 @@ from __future__ import annotations
 import re
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from typing import Any
 
 from packaging.requirements import InvalidRequirement, Requirement
 from packaging.version import Version
@@ -20,12 +19,9 @@ from troml_dev_status.analysis.filesystem import (
     find_src_dir,
     get_ci_config_files,
     get_project_dependencies,
-    has_multi_python_in_ci,
 )
-from troml_dev_status.analysis.git import get_latest_commit_date, is_tag_signed
-from troml_dev_status.analysis.pypi import get_project_data, get_sorted_versions
+from troml_dev_status.analysis.git import get_latest_commit_date
 from troml_dev_status.models import CheckResult
-
 
 # --- Check Functions ---
 
@@ -296,10 +292,9 @@ def check_c3_minimal_pin_sanity(repo_path: Path, mode: str) -> CheckResult:
                     failed_deps.append(dep_string)
             elif mode == "application":
                 # Stricter logic: Fail if not pinned with '=='
-                if (
-                    len(req.specifier) != 1
-                    or next(iter(req.specifier)).operator not in ("==", "<=","<", ">=",">")
-                ):
+                if len(req.specifier) != 1 or next(
+                    iter(req.specifier)
+                ).operator not in ("==", "<=", "<", ">=", ">"):
                     failed_deps.append(dep_string)
         except InvalidRequirement:
             # If the syntax is invalid, it's a failure.
@@ -310,18 +305,18 @@ def check_c3_minimal_pin_sanity(repo_path: Path, mode: str) -> CheckResult:
             return CheckResult(
                 passed=True, evidence="All dependencies have at least a version bound."
             )
-        else:  # application mode
-            return CheckResult(
-                passed=True, evidence="All dependencies are pinned with '==' or '<' or '>' or combinations."
-            )
-    else:
-        if mode == "library":
-            return CheckResult(
-                passed=False,
-                evidence=f"Found {len(failed_deps)} unconstrained dependencies: {', '.join(failed_deps)}.",
-            )
-        else:  # application mode
-            return CheckResult(
-                passed=False,
-                evidence=f"Found {len(failed_deps)} not strictly pinned somehow: {', '.join(failed_deps)}.",
-            )
+        # application mode
+        return CheckResult(
+            passed=True,
+            evidence="All dependencies are pinned with '==' or '<' or '>' or combinations.",
+        )
+    if mode == "library":
+        return CheckResult(
+            passed=False,
+            evidence=f"Found {len(failed_deps)} unconstrained dependencies: {', '.join(failed_deps)}.",
+        )
+    # application mode
+    return CheckResult(
+        passed=False,
+        evidence=f"Found {len(failed_deps)} not strictly pinned somehow: {', '.join(failed_deps)}.",
+    )

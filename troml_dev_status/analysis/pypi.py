@@ -1,9 +1,9 @@
 # troml_dev_status/analysis/pypi.py
 
+from __future__ import annotations
+
 import httpx
 from packaging.version import InvalidVersion, Version
-
-from troml_dev_status.models import CheckResult
 
 
 def get_project_data(project_name: str) -> dict | None:
@@ -16,7 +16,7 @@ def get_project_data(project_name: str) -> dict | None:
                 return None
             response.raise_for_status()
             return response.json()
-    except httpx.RequestError as e:
+    except httpx.RequestError:
         # Handle network-related errors
         return None
 

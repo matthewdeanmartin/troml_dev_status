@@ -1,4 +1,5 @@
 # troml_dev_status/reporting.py
+from __future__ import annotations
 
 import json
 from datetime import datetime

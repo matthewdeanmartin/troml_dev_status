@@ -3,30 +3,33 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, Iterable, List, Mapping, MutableMapping, Pattern, Sequence, Set, Tuple
+from typing import Dict, Iterable, Iterator, List, Mapping, Pattern, Set, Tuple
+
+import pathspec
 
 # ---- categories we recognize -------------------------------------------------
 
 # Keep these stable so users can filter reliably.
 CATEGORIES: Tuple[str, ...] = (
-    "contributing",   # how to contribute
+    "contributing",  # how to contribute
     "code_of_conduct",
     "security",
     "governance",
     "support",
     "funding",
-    "legal",          # license/notice/trademark
-    "citation",       # research citation formats
-    "templates",      # issue/PR templates
+    "legal",  # license/notice/trademark
+    "citation",  # research citation formats
+    "templates",  # issue/PR templates
     "release_notes",  # changelog/news/history
     "roadmap",
-    "style",          # style guides / testing guides
-    "meta",           # repo meta like CODEOWNERS, MAINTAINERS, AUTHORS
-    "automation",     # config for bots/tools that shape contribution process
+    "style",  # style guides / testing guides
+    "meta",  # repo meta like CODEOWNERS, MAINTAINERS, AUTHORS
+    "automation",  # config for bots/tools that shape contribution process
 )
 
 # Extensions to consider, including "no extension" via empty string.
 DEFAULT_EXTS: Tuple[str, ...] = ("", ".md", ".markdown", ".rst", ".txt", ".adoc")
+
 
 # Utility to build filename variants like "code-of-conduct", "code_of_conduct", "code of conduct"
 def _variants(base: str) -> List[str]:
@@ -57,7 +60,9 @@ class PatternSpec:
                 # Allow optional extension from allowed set.
                 # Example: r"^code[-_ ]?of[-_ ]?conduct(?:\.(md|rst|txt|adoc|markdown))?$" but faster to inject list
                 if self.exts and any(self.exts):
-                    exts_pattern = "|".join(re.escape(e.lstrip(".")) for e in self.exts if e)
+                    exts_pattern = "|".join(
+                        re.escape(e.lstrip(".")) for e in self.exts if e
+                    )
                     # Either no extension or one of the listed (if "" present)
                     allow_no_ext = "" in self.exts
                     if exts_pattern:
@@ -69,7 +74,9 @@ class PatternSpec:
                         ext_regex = ""  # only no-ext
                 else:
                     ext_regex = ""  # only no-ext
-                rx = re.compile(rf"^{re.escape(name_variant)}{ext_regex}$", re.IGNORECASE)
+                rx = re.compile(
+                    rf"^{re.escape(name_variant)}{ext_regex}$", re.IGNORECASE
+                )
                 fname_regexes.append(rx)
 
         # Explicit path regexes (already regex, we just compile case-insensitively).
@@ -81,21 +88,15 @@ class PatternSpec:
 
 # Master registry mapping categories to one or more PatternSpecs.
 PATTERNS: Mapping[str, Tuple[PatternSpec, ...]] = {
-    "contributing": (
-        PatternSpec(filename_bases=("contributing", "contribute")),
-    ),
+    "contributing": (PatternSpec(filename_bases=("contributing", "contribute")),),
     "code_of_conduct": (
-        PatternSpec(filename_bases=("code_of_conduct", "code-of-conduct", "code of conduct")),
+        PatternSpec(
+            filename_bases=("code_of_conduct", "code-of-conduct", "code of conduct")
+        ),
     ),
-    "security": (
-        PatternSpec(filename_bases=("security", "security policy")),
-    ),
-    "governance": (
-        PatternSpec(filename_bases=("governance", "governance policy")),
-    ),
-    "support": (
-        PatternSpec(filename_bases=("support", "getting help")),
-    ),
+    "security": (PatternSpec(filename_bases=("security", "security policy")),),
+    "governance": (PatternSpec(filename_bases=("governance", "governance policy")),),
+    "support": (PatternSpec(filename_bases=("support", "getting help")),),
     "funding": (
         # Common: .github/FUNDING.yml; also accept FUNDING.* elsewhere
         PatternSpec(
@@ -117,21 +118,37 @@ PATTERNS: Mapping[str, Tuple[PatternSpec, ...]] = {
         # Issue/PR templates in .github or root
         PatternSpec(filename_bases=("pull_request_template", "pr_template")),
         PatternSpec(filename_bases=("issue_template",)),
-        PatternSpec(path_regexes=(r"/\.github/(?:.*/)?pull_request_template\.(?:md|rst|txt)$",)),
-        PatternSpec(path_regexes=(r"/\.github/(?:.*/)?issue_template(?:s)?/.*\.(?:md|rst|txt)$",)),
+        PatternSpec(
+            path_regexes=(r"/\.github/(?:.*/)?pull_request_template\.(?:md|rst|txt)$",)
+        ),
+        PatternSpec(
+            path_regexes=(
+                r"/\.github/(?:.*/)?issue_template(?:s)?/.*\.(?:md|rst|txt)$",
+            )
+        ),
     ),
     "release_notes": (
-        PatternSpec(filename_bases=("changelog", "changes", "history", "news", "release_notes")),
+        PatternSpec(
+            filename_bases=("changelog", "changes", "history", "news", "release_notes")
+        ),
     ),
-    "roadmap": (
-        PatternSpec(filename_bases=("roadmap",)),
-    ),
+    "roadmap": (PatternSpec(filename_bases=("roadmap",)),),
     "style": (
-        PatternSpec(filename_bases=("styleguide", "style guide", "style", "testing", "test guide")),
+        PatternSpec(
+            filename_bases=(
+                "styleguide",
+                "style guide",
+                "style",
+                "testing",
+                "test guide",
+            )
+        ),
     ),
     "meta": (
         PatternSpec(filename_bases=("authors", "maintainers", "contributors")),
-        PatternSpec(filename_bases=("codeowners",), exts=("",)),  # CODEOWNERS usually no ext
+        PatternSpec(
+            filename_bases=("codeowners",), exts=("",)
+        ),  # CODEOWNERS usually no ext
         PatternSpec(path_regexes=(r"/\.github/CODEOWNERS$",)),
     ),
     "automation": (
@@ -140,8 +157,12 @@ PATTERNS: Mapping[str, Tuple[PatternSpec, ...]] = {
         PatternSpec(filename_bases=(".gitattributes",), exts=("",)),
         PatternSpec(filename_bases=(".pre-commit-config",), exts=("", ".yaml", ".yml")),
         PatternSpec(filename_bases=("dependabot",), exts=(".yml", ".yaml")),
-        PatternSpec(filename_bases=("renovate",), exts=(".json", ".json5", ".yaml", ".yml")),
-        PatternSpec(path_regexes=(r"/\.github/dependabot\.ya?ml$", r"/renovate\.json5?$")),
+        PatternSpec(
+            filename_bases=("renovate",), exts=(".json", ".json5", ".yaml", ".yml")
+        ),
+        PatternSpec(
+            path_regexes=(r"/\.github/dependabot\.ya?ml$", r"/renovate\.json5?$")
+        ),
         # Python tooling that often encodes “policy” for contributions
         PatternSpec(filename_bases=("pyproject",), exts=(".toml",)),
         PatternSpec(filename_bases=("setup",), exts=(".cfg",)),
@@ -151,6 +172,7 @@ PATTERNS: Mapping[str, Tuple[PatternSpec, ...]] = {
 }
 
 # ---- core scanning helpers ---------------------------------------------------
+
 
 def _compile_registry(
     include_categories: Iterable[str] | None,
@@ -172,11 +194,17 @@ def _compile_registry(
     return compiled
 
 
-def _match_category(cat: str, compiled: Mapping[str, Tuple[List[Pattern[str]], List[Pattern[str]]]], path: Path) -> bool:
+def _match_category(
+    cat: str,
+    compiled: Mapping[str, Tuple[List[Pattern[str]], List[Pattern[str]]]],
+    path: Path,
+) -> bool:
     fname = path.name
     posix = path.as_posix()
     fname_regexes, path_regexes = compiled[cat]
-    return any(rx.search(fname) for rx in fname_regexes) or any(rx.search(posix) for rx in path_regexes)
+    return any(rx.search(fname) for rx in fname_regexes) or any(
+        rx.search(posix) for rx in path_regexes
+    )
 
 
 def scan_bureaucracy(
@@ -237,9 +265,8 @@ def scan_bureaucracy(
     return found_by_cat
 
 
-
-
 # ---- public APIs -------------------------------------------------------------
+
 
 def get_bureaucracy_files(
     repo_path: Path,
@@ -255,7 +282,9 @@ def get_bureaucracy_files(
         categories: include only these categories (default: all known).
         exclude_categories: skip these categories.
     """
-    mapping = scan_bureaucracy(repo_path, include_categories=categories, exclude_categories=exclude_categories)
+    mapping = scan_bureaucracy(
+        repo_path, include_categories=categories, exclude_categories=exclude_categories
+    )
     # Preserve deterministic order: category order then path order.
     ordered: List[Path] = []
     for cat in CATEGORIES:
@@ -273,21 +302,27 @@ def summarize_bureaucracy(
     """
     Convenience: category -> count.
     """
-    mapping = scan_bureaucracy(repo_path, include_categories=categories, exclude_categories=exclude_categories)
+    mapping = scan_bureaucracy(
+        repo_path, include_categories=categories, exclude_categories=exclude_categories
+    )
     return {k: len(v) for k, v in mapping.items()}
 
-import pathspec  # pip install pathspec
 
 # --- utility: load .gitignore -----------------------------------------------
+
 
 def load_gitignore(repo_path: Path) -> pathspec.PathSpec | None:
     gitignore = repo_path / ".gitignore"
     if not gitignore.is_file():
         return None
-    spec = pathspec.PathSpec.from_lines("gitwildmatch", gitignore.read_text().splitlines())
+    spec = pathspec.PathSpec.from_lines(
+        "gitwildmatch", gitignore.read_text().splitlines()
+    )
     return spec
 
+
 # --- utility: walk with exclusions ------------------------------------------
+
 
 def iter_repo_files(repo_path: Path, follow_symlinks: bool = False) -> Iterator[Path]:
     """
@@ -295,8 +330,16 @@ def iter_repo_files(repo_path: Path, follow_symlinks: bool = False) -> Iterator[
       - .git, .venv, venv, node_modules, __pycache__, etc.
       - Anything ignored by .gitignore (if present).
     """
-    skip_dirs: Set[str] = {".git", ".hg", ".svn", ".venv", "venv",
-                           "__pycache__", "node_modules", ".mypy_cache"}
+    skip_dirs: Set[str] = {
+        ".git",
+        ".hg",
+        ".svn",
+        ".venv",
+        "venv",
+        "__pycache__",
+        "node_modules",
+        ".mypy_cache",
+    }
 
     gitignore_spec = load_gitignore(repo_path)
 
@@ -320,6 +363,7 @@ def iter_repo_files(repo_path: Path, follow_symlinks: bool = False) -> Iterator[
                 continue
 
         yield path
+
 
 # ---- quick extension guide ---------------------------------------------------
 # To add a new doc kind:

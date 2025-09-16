@@ -1,12 +1,12 @@
 # troml_dev_status/engine.py
 # Note: This is a simplified engine. A real implementation would be more robust.
 # Many checks from the PEP are stubbed as 'not implemented' for this example.
+from __future__ import annotations
 
-from datetime import datetime, timezone
 from pathlib import Path
-from typing import Dict, List
+from typing import Dict
 
-from troml_dev_status.analysis import filesystem, git, pypi
+from troml_dev_status.analysis import filesystem, pypi
 from troml_dev_status.analysis.bureaucracy import get_bureaucracy_files
 from troml_dev_status.checks import (
     check_c3_minimal_pin_sanity,
@@ -40,9 +40,9 @@ def run_analysis(repo_path: Path, project_name: str) -> EvidenceReport:
     # R-Checks (Release & Packaging)
     results["R1"] = check_r1_published_at_least_once(pypi_data)
     if latest_version:
-        results["R2"] = check_r2_wheel_sdist_present(pypi_data, latest_version)
+        results["R2"] = check_r2_wheel_sdist_present(pypi_data or {}, latest_version)
         results["R4 (12mo)"] = check_r4_recent_activity(
-            pypi_data, latest_version, months=12
+            pypi_data or {}, latest_version, months=12
         )
     # Stubs for other R checks
     results["R3"] = CheckResult(passed=False, evidence="Not implemented.")
@@ -75,7 +75,8 @@ def run_analysis(repo_path: Path, project_name: str) -> EvidenceReport:
     results["S3"] = CheckResult(passed=False, evidence="Not implemented.")
     results["D1"] = CheckResult(passed=False, evidence="Not implemented.")
     results["C1"] = CheckResult(
-        passed=len(get_bureaucracy_files(repo_path,categories=["security"] ))>=1, evidence="Checked for security files"
+        passed=len(get_bureaucracy_files(repo_path, categories=["security"])) >= 1,
+        evidence="Checked for security files",
     )
     results["C2"] = CheckResult(passed=False, evidence="Not implemented.")
     results["C3"] = check_c3_minimal_pin_sanity(repo_path, analysis_mode)
@@ -105,7 +106,7 @@ def determine_status(
 
     # Unclassifiable
     if not results.get("R1", CheckResult(passed=False, evidence="")).passed:
-        return "Unclassifiable", "Project has no releases on PyPI."
+        return "Development Status :: 1 - Planning", "Project has no releases on PyPI."
 
     # NOTE: Inactive, Production, Mature checks are simplified for this sketch.
     # A full implementation would be much more detailed.

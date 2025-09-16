@@ -1,14 +1,15 @@
 # troml_dev_status/analysis/git.py
+from __future__ import annotations
 
-import subprocess
-from datetime import datetime, timedelta, timezone
+import subprocess  # nosec
+from datetime import datetime, timezone
 from pathlib import Path
 
 
 def _run_git_command(cwd: Path, *args: str) -> str | None:
     """Helper to run a git command and return its output."""
     try:
-        result = subprocess.run(
+        result = subprocess.run(  # nosec
             ["git", "-C", str(cwd), *args],
             capture_output=True,
             text=True,
@@ -36,7 +37,7 @@ def is_tag_signed(repo_path: Path, tag_name: str) -> bool:
     # `git tag -v` returns 0 if signed and valid, non-zero otherwise.
     # We capture stderr to prevent it from printing to the console on failure.
     try:
-        subprocess.run(
+        subprocess.run(  # nosec
             ["git", "-C", str(repo_path), "tag", "-v", tag_name],
             check=True,
             capture_output=True,

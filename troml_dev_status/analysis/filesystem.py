@@ -1,9 +1,10 @@
 # troml_dev_status/analysis/filesystem.py
 
+from __future__ import annotations
+
 import ast
 import tomllib
 from pathlib import Path
-from typing import Set
 
 import yaml
 
@@ -76,10 +77,10 @@ def count_test_files(repo_path: Path) -> int:
         tests_dir = repo_path / dir_name
         if not tests_dir.is_dir():
             continue
-        found= len(list(tests_dir.glob("**/test_*.py"))) + len(
+        found = len(list(tests_dir.glob("**/test_*.py"))) + len(
             list(tests_dir.glob("**/*_test.py"))
         )
-        total+=found
+        total += found
     return total
 
 
@@ -157,7 +158,8 @@ def analyze_type_hint_coverage(src_path: Path) -> tuple[float, int]:
     coverage = (annotated_symbols / total_symbols) * 100
     return coverage, total_symbols
 
-def get_bureaucracy_files(repo_path:Path):
+
+def get_bureaucracy_files(repo_path: Path):
     # could be in any case, could be with or without extension, could
     patterns = ["security.md", "contributing.md", "code_of_conduct.md"]
     files = []

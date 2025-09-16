@@ -60,3 +60,21 @@ The tool also prints a detailed JSON object containing the results of every chec
   }
 }
 ```
+
+## Project Health
+
+| Metric         | Status |
+|----------------|--------|
+| Coverage       | [![codecov](https://codecov.io/gh/matthewdeanmartin/troml_dev_status/branch/main/graph/badge.svg)](https://codecov.io/gh/matthewdeanmartin/troml_dev_status) |
+| Docs           | [![Docs](https://readthedocs.org/projects/troml_dev_status/badge/?version=latest)](https://troml_dev_status.readthedocs.io/en/latest/) |
+| PyPI           | [![PyPI](https://img.shields.io/pypi/v/troml_dev_status)](https://pypi.org/project/troml_dev_status/) |
+| Downloads      | [![Downloads](https://static.pepy.tech/personalized-badge/troml_dev_status?period=total&units=international_system&left_color=grey&right_color=blue&left_text=Downloads)](https://pepy.tech/project/troml_dev_status) |
+| License        | [![License](https://img.shields.io/github/license/matthewdeanmartin/troml_dev_status)](https://github.com/matthewdeanmartin/troml_dev_status/blob/main/LICENSE.md) |
+| Last Commit    | ![Last Commit](https://img.shields.io/github/last-commit/matthewdeanmartin/troml_dev_status) |
+
+## Libray info pages
+- [troml_dev_status](https://libraries.io/pypi/troml_dev_status)
+
+## Snyk Security Pages
+
+- [troml_dev_status](https://security.snyk.io/package/pip/troml_dev_status)

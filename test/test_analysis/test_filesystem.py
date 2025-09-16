@@ -32,6 +32,7 @@ def write(repo: Path, rel: str, content: str = "") -> Path:
 # get_project_name
 # ----------------------------
 
+
 def test_get_project_name_missing_returns_none(tmp_path: Path) -> None:
     assert get_project_name(tmp_path) is None
 
@@ -58,6 +59,7 @@ def test_get_project_name_bad_toml_returns_none(tmp_path: Path) -> None:
 # ----------------------------
 # get_analysis_mode
 # ----------------------------
+
 
 def test_get_analysis_mode_defaults_when_missing_file(tmp_path: Path) -> None:
     assert get_analysis_mode(tmp_path) == "library"
@@ -101,6 +103,7 @@ def test_get_analysis_mode_bad_toml_returns_library(tmp_path: Path) -> None:
 # get_project_dependencies
 # ----------------------------
 
+
 def test_get_project_dependencies_missing_file_returns_none(tmp_path: Path) -> None:
     assert get_project_dependencies(tmp_path) is None
 
@@ -129,6 +132,7 @@ def test_get_project_dependencies_bad_toml_returns_none(tmp_path: Path) -> None:
 # find_src_dir
 # ----------------------------
 
+
 def test_find_src_dir_prefers_src_folder(tmp_path: Path) -> None:
     (tmp_path / "src").mkdir()
     assert find_src_dir(tmp_path) == tmp_path / "src"
@@ -156,6 +160,7 @@ def test_find_src_dir_returns_none_when_not_found(tmp_path: Path) -> None:
 # count_test_files
 # ----------------------------
 
+
 def test_count_test_files_handles_both_patterns(tmp_path: Path) -> None:
     tests = tmp_path / "tests"
     tests.mkdir()
@@ -172,6 +177,7 @@ def test_count_test_files_missing_dir_returns_zero(tmp_path: Path) -> None:
 # ----------------------------
 # count_source_modules
 # ----------------------------
+
 
 def test_count_source_modules_counts_recursive_and_skips_init(tmp_path: Path) -> None:
     src = tmp_path / "src"
@@ -190,6 +196,7 @@ def test_count_source_modules_returns_zero_for_missing(tmp_path: Path) -> None:
 # ----------------------------
 # CI config discovery
 # ----------------------------
+
 
 def test_get_ci_config_files_finds_github_and_gitlab(tmp_path: Path) -> None:
     gh_yml = write(tmp_path, ".github/workflows/ci.yml", "name: CI")
@@ -224,7 +231,10 @@ def test_has_multi_python_in_ci_false_when_zero_or_one_version(tmp_path: Path) -
 # analyze_type_hint_coverage
 # ----------------------------
 
-def test_analyze_type_hint_coverage_counts_public_return_annotations(tmp_path: Path) -> None:
+
+def test_analyze_type_hint_coverage_counts_public_return_annotations(
+    tmp_path: Path,
+) -> None:
     src = tmp_path / "srcpkg"
     src.mkdir()
     write(
@@ -263,7 +273,9 @@ def test_analyze_type_hint_coverage_counts_public_return_annotations(tmp_path: P
     assert pytest.approx(coverage, rel=1e-6) == 50.0
 
 
-def test_analyze_type_hint_coverage_handles_syntax_errors_and_empty(tmp_path: Path) -> None:
+def test_analyze_type_hint_coverage_handles_syntax_errors_and_empty(
+    tmp_path: Path,
+) -> None:
     src = tmp_path / "src"
     src.mkdir()
     write(tmp_path, "src/bad.py", "def broken(:\n    pass")
@@ -276,11 +288,12 @@ def test_analyze_type_hint_coverage_handles_syntax_errors_and_empty(tmp_path: Pa
 # get_bureaucracy_files
 # ----------------------------
 
+
 def test_get_bureaucracy_files_matches_exact_patterns(tmp_path: Path) -> None:
     # Only exact lowercase names with .md according to current implementation
-    f1 = write(tmp_path, "security.md", "# sec")
-    f2 = write(tmp_path, "contributing.md", "# contrib")
-    f3 = write(tmp_path, "code_of_conduct.md", "# coc")
+    _f1 = write(tmp_path, "security.md", "# sec")
+    _f2 = write(tmp_path, "contributing.md", "# contrib")
+    _f3 = write(tmp_path, "code_of_conduct.md", "# coc")
     # Similar but should NOT match with current logic:
     write(tmp_path, "SECURITY.md", "# nope")
     write(tmp_path, "Contributing.MD", "# nope")

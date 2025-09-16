@@ -1,0 +1,17 @@
+"""Metadata for troml_dev_status."""
+
+__all__ = [
+    "__title__",
+    "__version__",
+    "__description__",
+    "__readme__",
+    "__requires_python__",
+    "__status__",
+]
+
+__title__ = "troml-dev-status"
+__version__ = "0.1.0"
+__description__ = "Objectively infer PyPI Development Status classifiers from code and release artifacts."
+__readme__ = "README.md"
+__requires_python__ = ">=3.11"
+__status__ = "1 - Planning"

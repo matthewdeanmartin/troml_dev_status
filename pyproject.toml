@@ -5,21 +5,27 @@ build-backend = "hatchling.build"
 [project]
 name = "troml-dev-status"
 version = "0.1.0"
-description = "Implements PEP XXXX to objectively infer PyPI Development Status classifiers from code and release artifacts."
+description = "Objectively infer PyPI Development Status classifiers from code and release artifacts."
 readme = "README.md"
 authors = [
     { name = "Gemini", email = "gemini@example.com" },
 ]
 requires-python = ">=3.11"
 classifiers = [
-    "Development Status :: 3 - Alpha",
-    "Programming Language :: Python :: 3.11",
-    "Programming Language :: Python :: 3.12",
-    "Environment :: Console",
-    "Intended Audience :: Developers",
-    "License :: OSI Approved :: Apache Software License",
-    "Topic :: Software Development :: Quality Assurance",
+  "Development Status :: 1 - Planning",
+  "Environment :: Console",
+  "Framework :: Pydantic",
+  "Intended Audience :: Developers",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
+  "Programming Language :: Python :: 3.15",
+  "Topic :: Software Development :: Quality Assurance",
 ]
+
+
 dependencies = [
     "rich>=14.1.0",
     "pydantic>=2.11.9",
@@ -85,6 +91,7 @@ Repository = "https://example.com/troml-dev-status.git"
 
 [project.scripts]
 troml-dev-status = "troml_dev_status.cli:main"
+troml_dev_status = "troml_dev_status.cli:main"
 
 [tool.troml-dev-status]
 mode = "application"  # or "library"
