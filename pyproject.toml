@@ -8,7 +8,9 @@ version = "0.1.0"
 description = "Objectively infer PyPI Development Status classifiers from code and release artifacts."
 readme = "README.md"
 authors = [
-    { name = "Gemini", email = "gemini@example.com" },
+    { name = "Matthew Dean Martin", email = "matthewdeanmartin@gmail.com" },
+    { name = "Gemini" },
+    { name = "ChatGPT" },
 ]
 requires-python = ">=3.9"
 classifiers = [
@@ -41,7 +43,7 @@ dependencies = [
 dev = [
     "types-PyYAML",
     "troml;python_version>='3.10'",
-    "bitrab",
+    "troml_dev_status",
     "cli-tool-audit",
     "git2md; python_version >= '3.10'",
     "pyclean; python_version >= '3.12'",
@@ -89,12 +91,44 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://example.com/troml-dev-status"
-Repository = "https://example.com/troml-dev-status.git"
+Repository = "https://github.com/matthewdeanmartin/troml_dev_status"
+# Documentation = "https://bitrab.readthedocs.io/en/latest/"
+Changelog = "https://github.com/matthewdeanmartin/troml_dev_status/blob/main/CHANGELOG.md"
+
+homepage = "https://github.com/matthewdeanmartin/troml_dev_status"
+issues = "https://github.com/matthewdeanmartin/troml_dev_status/issues/"
+
 
 [project.scripts]
 troml-dev-status = "troml_dev_status.cli:main"
 troml_dev_status = "troml_dev_status.cli:main"
 
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "troml_dev_status/**/*.py",
+    "troml_dev_status/schemas/*",
+    "troml_dev_status/py.typed",
+    "/README.md", "LICENSE",
+]
+
+exclude = [
+
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["troml_dev_status"]
+include = [
+    "troml_dev_status/**/*.py",
+    "troml_dev_status/schemas/*",
+    "troml_dev_status/py.typed",
+    "/README.md", "LICENSE",
+]
+
 [tool.troml-dev-status]
 mode = "application"  # or "library"
+
