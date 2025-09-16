@@ -1,7 +1,8 @@
 # troml_dev_status
 Project inspired by troml to suggest a Development Status based solely on objective criteria.
 
-A tool to objectively infer PyPI "Development Status" classifiers from code and release artifacts, based on the draft PEP XXXX.
+A tool to objectively infer PyPI "Development Status" classifiers from code and release artifacts, based on the 
+[draft PEP ∞](docs/PEP.md).
 
 ## Installation
 

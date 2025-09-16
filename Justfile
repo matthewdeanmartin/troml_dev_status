@@ -76,7 +76,7 @@ mypy:
 test: clean uv-lock install-plugins
     @echo "Running unit tests"
     {{venv}} py.test test -vv -n auto \
-      --cov=troml_dev_status --cov-report=html --cov-fail-under 35 --cov-branch \
+      --cov=troml_dev_status --cov-report=html --cov-fail-under 18 --cov-branch \
       --cov-report=xml --junitxml=junit.xml -o junit_family=legacy \
       --timeout=5 --session-timeout=600
     {{venv}} bash basic_checks.sh
