@@ -71,7 +71,7 @@ dev = [
     "pytest-randomly>=3.15.0; python_version >= '3.8'",
     "pytest-sugar>=0.9.7; python_version >= '3.8'",
     "pytest-mock; python_version >= '3.8'",
-    "pytest-unused-whichfixtures; python_version >= '3.10'",
+    # "pytest-unused-whichfixtures; python_version >= '3.10'",
     "hypothesis[cli]; python_version >= '3.8'",
     "detect-test-pollution",
     "pytest-timeout>=2.4.0",
