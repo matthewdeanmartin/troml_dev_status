@@ -92,9 +92,7 @@ def _devguide_phase_map(client: httpx.Client) -> Dict[str, str]:
                 phase_map[branch] = (
                     "bugfix"
                     if "bugfix" in phase
-                    else "security"
-                    if "security" in phase
-                    else "pre-release"
+                    else "security" if "security" in phase else "pre-release"
                 )
         return phase_map
     except Exception:

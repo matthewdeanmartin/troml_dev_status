@@ -29,7 +29,6 @@ from troml_dev_status.analysis.pypi import latest_release_has_attestations
 from troml_dev_status.models import CheckResult
 from troml_dev_status.utils.support_per_endoflife import fetch_latest_supported_minor
 
-
 # --- Check Functions ---
 
 
@@ -44,7 +43,7 @@ def check_r1_published_at_least_once(pypi_data: dict | None) -> CheckResult:
 
 
 def check_r2_wheel_sdist_present(
-        pypi_data: dict, latest_version: Version
+    pypi_data: dict, latest_version: Version
 ) -> CheckResult:
     releases = pypi_data.get("releases", {}).get(str(latest_version), [])
     has_wheel = any(f["packagetype"] == "bdist_wheel" for f in releases)
@@ -59,7 +58,7 @@ def check_r2_wheel_sdist_present(
 
 
 def check_r4_recent_activity(
-        pypi_data: dict, latest_version: Version, months: int
+    pypi_data: dict, latest_version: Version, months: int
 ) -> CheckResult:
     releases = pypi_data.get("releases", {}).get(str(latest_version), [])
     if not releases:
@@ -141,11 +140,12 @@ def check_q5_type_hints_shipped(repo_path: Path) -> tuple[CheckResult, float, in
             0,
         )
 
-    if not (src_dir/ "py.typed").exists():
+    if not (src_dir / "py.typed").exists():
         return (
             CheckResult(passed=False, evidence="py.typed file required."),
             0.0,
-            0,)
+            0,
+        )
 
     coverage, total_symbols = analyze_type_hint_coverage(src_dir)
 
@@ -180,8 +180,9 @@ def check_q5_type_hints_shipped(repo_path: Path) -> tuple[CheckResult, float, in
 def check_q6_docs_present(repo_path: Path) -> tuple[CheckResult, int]:
     docs_dir = repo_path / "docs"
     if docs_dir.is_dir() and (
-            (docs_dir / "conf.py").exists() or (docs_dir / "mkdocs.yml").exists()
-            or (repo_path / "mkdocs.yml").exists()
+        (docs_dir / "conf.py").exists()
+        or (docs_dir / "mkdocs.yml").exists()
+        or (repo_path / "mkdocs.yml").exists()
     ):
         return (
             CheckResult(
@@ -320,7 +321,7 @@ def check_c3_minimal_pin_sanity(repo_path: Path, mode: str) -> CheckResult:
             elif mode == "application":
                 # Stricter logic: Fail if not pinned with '=='
                 if len(req.specifier) != 1 or next(
-                        iter(req.specifier)
+                    iter(req.specifier)
                 ).operator not in ("==", "<=", "<", ">=", ">"):
                     failed_deps.append(dep_string)
         except InvalidRequirement:
@@ -399,7 +400,7 @@ def check_r3_pep440_versioning(pypi_data: dict | None) -> CheckResult:
 
 
 def check_r5_python_version_declaration(
-        repo_path: Path, pypi_data: dict | None
+    repo_path: Path, pypi_data: dict | None
 ) -> CheckResult:
     """
     Checks for Requires-Python in pyproject.toml and a Python trove classifier on PyPI.
@@ -450,9 +451,9 @@ def _python_minor_classifiers(classifiers: list[str]) -> list[str]:
 
 
 def check_r6_current_python_coverage(
-        pypi_data: dict,
-        *,
-        timeout: float = 10.0,
+    pypi_data: dict,
+    *,
+    timeout: float = 10.0,
 ) -> CheckResult:
     """
     R6. Current Python coverage: Declared support includes current-1 CPython minor.
@@ -514,7 +515,7 @@ def check_r6_current_python_coverage(
 
     # Prepare helpful evidence
     declared_py_classifiers = (
-            ", ".join(sorted(_python_minor_classifiers(classifiers))) or "none"
+        ", ".join(sorted(_python_minor_classifiers(classifiers))) or "none"
     )
     req_str = requires_python if requires_python else "none"
 

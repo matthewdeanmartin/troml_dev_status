@@ -33,12 +33,11 @@ CHECK_DESCRIPTIONS = {
     "C4": "Reproducible Dev Env",
     "M1": "Project Age",
     "M2": "Recent Code Motion",
-
-"Cmpl1": "TODO markers",
-"Cmpl2": "NotImplemented usage",
-"Cmpl3": "Placeholder `pass`",
-"Cmpl4": "Stub files",
-"Cmpl5": "Code coverage"
+    "Cmpl1": "TODO markers",
+    "Cmpl2": "NotImplemented usage",
+    "Cmpl3": "Placeholder `pass`",
+    "Cmpl4": "Stub files",
+    "Cmpl5": "Code coverage",
 }
 
 

@@ -83,7 +83,7 @@ bandit: .build_history/bandit
 # for when using -j (jobs, run in parallel)
 .NOTPARALLEL: .build_history/isort .build_history/black
 
-check: mypy test pylint bandit pre-commit update-schema
+check: mypy test pylint bandit pre-commit
 
 #.PHONY: publish_test
 #publish_test:

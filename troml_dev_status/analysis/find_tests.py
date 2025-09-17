@@ -1,7 +1,6 @@
 from __future__ import annotations
 
-import sys
-import subprocess
+import subprocess  # nosec
 import unittest
 from pathlib import Path
 from typing import Iterable, List, Tuple
@@ -27,7 +26,9 @@ def _count_unittest(repo_path: Path, start_dirs: Iterable[str]) -> int:
     # Discover separately per start dir (mirrors how people usually run them)
     for d in dirs:
         # Default pattern matches test*.py; this picks up both test_*.py and *_test.py
-        suite = loader.discover(start_dir=str(d), pattern="test*.py", top_level_dir=str(repo_path))
+        suite = loader.discover(
+            start_dir=str(d), pattern="test*.py", top_level_dir=str(repo_path)
+        )
         master_suite.addTests(suite)
 
     return master_suite.countTestCases()
@@ -54,7 +55,7 @@ def _count_pytest(repo_path: Path, start_dirs: Iterable[str]) -> int:
             "-q",  # quiet: prints nodeids one per line
             *[str(d) for d in dirs],
         ]
-        proc = subprocess.run(
+        proc = subprocess.run(  # nosec
             cmd,
             cwd=str(repo_path),
             stdout=subprocess.PIPE,
@@ -75,7 +76,9 @@ def _count_pytest(repo_path: Path, start_dirs: Iterable[str]) -> int:
         if not s:
             continue
         # Skip separators / warnings / summary noise that sometimes sneak in
-        if s.startswith(("[", "=", "-", "collected ", "no tests", "warning", "ERROR", "E   ")):
+        if s.startswith(
+            ("[", "=", "-", "collected ", "no tests", "warning", "ERROR", "E   ")
+        ):
             continue
         # Heuristic: collected nodeids usually contain '::' when they’re tests;
         # parameterized tests also appear as nodeids with '::'.
@@ -122,6 +125,7 @@ def count_tests(
 
     return ("none", 0)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     # relative paths don't work?
-   print(count_tests(Path("../.."), ["test", "tests"]))
+    print(count_tests(Path("../.."), ["test", "tests"]))
