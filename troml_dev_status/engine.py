@@ -1,6 +1,4 @@
 # troml_dev_status/engine.py
-# Note: This is a simplified engine. A real implementation would be more robust.
-# Many checks from the PEP are stubbed as 'not implemented' for this example.
 from __future__ import annotations
 
 from pathlib import Path
@@ -53,7 +51,6 @@ def run_analysis(repo_path: Path, project_name: str) -> EvidenceReport:
     results["R3"] = check_r3_pep440_versioning(pypi_data)
     results["R5"] = check_r5_python_version_declaration(repo_path, pypi_data)
     results["R6"] = check_r6_current_python_coverage(pypi_data or {})
-    results["R7"] = CheckResult(passed=False, evidence="Not implemented.")
 
     # Q-Checks (Quality)
     results["Q1"] = check_q1_ci_config_present(repo_path)
@@ -76,8 +73,8 @@ def run_analysis(repo_path: Path, project_name: str) -> EvidenceReport:
 
     # S, D, C Checks (Stubs)
     results["S1"] = CheckResult(passed=False, evidence="Not implemented.")
-    results["S2"] = CheckResult(passed=False, evidence="Not implemented.")
-    results["S3"] = CheckResult(passed=False, evidence="Not implemented.")
+    # results["S2"] = CheckResult(passed=False, evidence="Not implemented.")
+    # results["S3"] = CheckResult(passed=False, evidence="Not implemented.")
     results["D1"] = CheckResult(passed=False, evidence="Not implemented.")
     results["C1"] = CheckResult(
         passed=len(get_bureaucracy_files(repo_path, categories=["security"])) >= 1,
@@ -91,6 +88,12 @@ def run_analysis(repo_path: Path, project_name: str) -> EvidenceReport:
     if pypi_data:
         results["M1"] = check_m1_project_age(pypi_data)
     results["M2 (12mo)"] = check_m2_code_motion(repo_path, months=12)
+
+    results["Cmpl1"] = CheckResult(passed=False, evidence="Not implemented.")
+    results["Cmpl2"] = CheckResult(passed=False, evidence="Not implemented.")
+    results["Cmpl3"] = CheckResult(passed=False, evidence="Not implemented.")
+    results["Cmpl4"] = CheckResult(passed=False, evidence="Not implemented.")
+    results["Cmpl5"] = CheckResult(passed=False, evidence="Not implemented.")
 
     # --- Classification Logic ---
     classifier, reason = determine_status(results, latest_version, metrics)
@@ -122,7 +125,6 @@ def determine_status(
         "R3",
         "R5",
         "R6",
-        "R7",
         "Q1",
         "Q2",
         "Q3",

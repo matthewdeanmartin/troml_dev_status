@@ -3,12 +3,9 @@
 | PEP          | XXXX                                                        |
 |--------------|-------------------------------------------------------------|
 | Title        | A fully-objective rubric for Development Status classifiers |
-| Author       | you + tool authors (TBD)                                    |
+| Author       | Matthew Dean Martin                                         |
 | Status       | Draft                                                       |
-| Type         | Standards Track                                             |
 | Created      | 2025-09-14                                                  |
-| Requires     | None                                                        |
-| Post-History | N/A                                                         |
 
 ## Abstract
 
@@ -23,6 +20,14 @@ maintainers feel done. Inactive implies the last publication and is not a metric
 
 This PEP does **not** change Trove Classifier semantics managed by PyPI; it specifies a **repeatable algorithm** that
 tools may use to recommend a classifier.
+
+- Development Status :: 1 - Planning
+- Development Status :: 2 - Pre-Alpha
+- Development Status :: 3 - Alpha
+- Development Status :: 4 - Beta
+- Development Status :: 5 - Production/Stable
+- Development Status :: 6 - Mature
+- Development Status :: 7 - Inactive
 
 ## Motivation
 
@@ -74,9 +79,6 @@ for a specific Python version.
 **R6. Current Python coverage:** Declared support includes **current-1** CPython minor (e.g., if current is 3.13,
 supports ≥3.12).
 
-**R7. Distribution health:** Source tree contains `pyproject.toml` with a build backend; and sdist includes
-README/license files.
-
 ### CI, Tests, Types, Docs (Discoverability Only)
 
 **Q1. CI config present:** A CI workflow file exists that runs on push/PR (e.g., `.github/workflows/*.yml`,
@@ -90,7 +92,7 @@ README/license files.
 **Q4. Test/file ratio:** `(# test files) / (# public src modules)` ≥ **0.20** (count modules under `src/` or top-level
 package excluding `__init__.py`).
 
-**Q5. Type hints shipped:** Either `py.typed` present in package **or** ≥ **70%** of public functions/classes in `src/`
+**Q5. Type hints shipped:** `py.typed` present in package **and** ≥ **70%** of public functions/classes in `src/`
 have type annotations (static count via AST).
 
 **Q6. Docs present:** A `docs/` dir with Sphinx or MkDocs config (`conf.py` or `mkdocs.yml`) **or** README length ≥ *
@@ -120,7 +122,7 @@ A measure of how much of the codebase is **implemented vs. stubbed**. Completene
 
 * **Cmpl5. Functionality coverage.** Pass if `tests/` exercises ≥50% of public modules (measured by import and symbol reference, not runtime coverage).
 
-**Completeness Score (0–5):** Sum of signals passed.
+* **Completeness Score (0–5):** Sum of signals passed.
 
 Projects with low Completeness scores are objectively less likely to be usable, regardless of stated ambitions.
 
@@ -176,7 +178,7 @@ one can tell from past history. If anything, a revived package wouldn't want to 
 
 Classify as **Development Status :: 5 – Production/Stable** iff **all** of the following pass:
 
-* **Release/packaging:** R1–R7
+* **Release/packaging:** R1–R6
 
 * **Quality discoverability:** Q1–Q7
 
@@ -211,7 +213,7 @@ Classify as **Development Status :: 6 – Mature** iff **Production/Stable** pas
 For “early” statuses, we use counts of the same objective checks. Define the **Early-Phase Score (EPS)** as the number
 of checks passed in this set:
 
-`EPS_SET = {R2,R3,R5,R6,R7,Q1,Q2,Q3,Q4,Q5,Q6,Q7,S1,S3,D1,C1,C3,C4,M1}`
+`EPS_SET = {R2,R3,R5,R6,Q1,Q2,Q3,Q4,Q5,Q6,Q7,S1,S3,D1,C1,C3,C4,M1}`
 
 * **Planning (1):** R1 passes, and **EPS ∈ \[0, 3]**, and latest version `<0.1.0`.
 
@@ -233,7 +235,7 @@ of checks passed in this set:
 
 1. **Discover project name** from `pyproject.toml` / `setup.cfg`.
 
-2. **Fetch PyPI releases** and artifacts; compute R1–R7, R4 windowed for 12 and 24 months.
+2. **Fetch PyPI releases** and artifacts; compute R1–R6, R4 windowed for 12 and 24 months.
 
 3. **Read Git history** (default branch) to compute M2, tag signatures for C2.
 

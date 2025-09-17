@@ -16,7 +16,6 @@ CHECK_DESCRIPTIONS = {
     "R4": "Recent Release",
     "R5": "Python Version Declared",
     "R6": "Current Python Support",
-    "R7": "Healthy Distribution",
     "Q1": "CI Config Present",
     "Q2": "Multi-Python CI",
     "Q3": "Tests Present",
@@ -24,9 +23,9 @@ CHECK_DESCRIPTIONS = {
     "Q5": "Shipped Type Hints",
     "Q6": "Docs Present",
     "Q7": "Changelog Present",
-    "S1": "No Silent API Removals",
-    "S2": "Stable SemVer API",
-    "S3": "Pre-1.0 API Churn",
+    "S1": "Declares dunder-all",
+    # "S2": "Stable SemVer API",
+    # "S3": "Pre-1.0 API Churn",
     "D1": "Deprecation Policy Evidence",
     "C1": "SECURITY.md Present",
     "C2": "Trusted Publisher",
@@ -34,6 +33,12 @@ CHECK_DESCRIPTIONS = {
     "C4": "Reproducible Dev Env",
     "M1": "Project Age",
     "M2": "Recent Code Motion",
+
+"Cmpl1": "TODO markers",
+"Cmpl2": "NotImplemented usage",
+"Cmpl3": "Placeholder `pass`",
+"Cmpl4": "Stub files",
+"Cmpl5": "Code coverage"
 }
 
 

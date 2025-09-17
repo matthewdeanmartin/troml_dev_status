@@ -22,13 +22,14 @@ dependencies = [
     "httpx[http2]>=0.28.1",
     "pyyaml>=6.0.2",
     "packaging>=25.0",
-    "tomli; python_version < '3.11'",
+    "tomli>1.0.0; python_version < '3.11'",
     "tomlkit>=0.13.3",
-    "pyproject-fmt"
+    "pathspec>=0.12.1"
 ]
 
 [dependency-groups]
 dev = [
+#    "toml-formatter",
     "bitrab",
     "types-PyYAML",
     "troml;python_version>='3.11'",

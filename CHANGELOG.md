@@ -12,14 +12,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed for any bug fixes.
 - Security in case of vulnerabilities.
 
-## [0.2.0] - 2025-09-15
+## [0.2.0] - 2025-09-16
 
 ### Changed
 
 - Default command is gone, now must use `troml-dev-status analyze .` to analyze current project.
 - API stability rubric mostly gone.
 - Rubric changed from credits for git signature to pypi attestations
-- Tool will no longer ever rate project as ""
+- Tool will no longer ever rate project as "Development Status :: 7 - Inactive"
 
 ### Added
 

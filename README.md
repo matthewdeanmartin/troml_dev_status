@@ -2,7 +2,7 @@
 Project inspired by troml to suggest a Development Status based solely on objective criteria.
 
 A tool to objectively infer PyPI "Development Status" classifiers from code and release artifacts, based on the 
-[draft PEP ∞](docs/PEP.md).
+[draft PEP ∞](https://github.com/matthewdeanmartin/troml_dev_status/blob/main/docs/PEP.md).
 
 ## Installation
 
@@ -15,7 +15,14 @@ pip install troml-dev-status
 Run the tool against a local Git repository that has a `pyproject.toml` file.
 
 ```bash
-troml-dev-status /path/to/your/project
+# just display info
+troml-dev-status analyze /path/to/your/project 
+
+# fails if tool disagrees with your current development status
+troml-dev-status verify /path/to/your/project 
+
+# updates pyproject.toml with current status
+troml-dev-status update /path/to/your/project 
 ```
 
 The tool will analyze the project's PyPI releases, Git history, and source code to produce an evidence-based "Development Status" classifier.
@@ -26,14 +33,14 @@ The tool outputs a human-readable summary table and a machine-readable JSON repo
 
 ### Example Human-Readable Output
 
-```
+```text
 ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 ┃ Check ID                         ┃ Status ┃ Evidence                                    ┃
 ┡━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩
-│ R1. Published at least once      │   ✅   │ Found 15 releases on PyPI for 'my-package'  │
-│ R2. Wheel + sdist present        │   ✅   │ Latest release 1.2.3 has wheel and sdist    │
+│ R1. Published at least once      │   OK   │ Found 15 releases on PyPI for 'my-package'  │
+│ R2. Wheel + sdist present        │   OK   │ Latest release 1.2.3 has wheel and sdist    │
 │ ...                              │   ...  │ ...                                         │
-│ Q5. Type hints shipped           │   ❌   │ 45.8% of 120 public symbols are annotated   │
+│ Q5. Type hints shipped           │   X    │ 45.8% of 120 public symbols are annotated   │
 │ ...                              │   ...  │ ...                                         │
 └──────────────────────────────────┴────────┴─────────────────────────────────────────────┘
           Final Inferred Classifier: Development Status :: 4 - Beta
@@ -64,14 +71,14 @@ The tool also prints a detailed JSON object containing the results of every chec
 
 ## Project Health
 
-| Metric         | Status |
-|----------------|--------|
-| Coverage       | [![codecov](https://codecov.io/gh/matthewdeanmartin/troml_dev_status/branch/main/graph/badge.svg)](https://codecov.io/gh/matthewdeanmartin/troml_dev_status) |
-| Docs           | [![Docs](https://readthedocs.org/projects/troml_dev_status/badge/?version=latest)](https://troml_dev_status.readthedocs.io/en/latest/) |
-| PyPI           | [![PyPI](https://img.shields.io/pypi/v/troml_dev_status)](https://pypi.org/project/troml_dev_status/) |
-| Downloads      | [![Downloads](https://static.pepy.tech/personalized-badge/troml_dev_status?period=total&units=international_system&left_color=grey&right_color=blue&left_text=Downloads)](https://pepy.tech/project/troml_dev_status) |
-| License        | [![License](https://img.shields.io/github/license/matthewdeanmartin/troml_dev_status)](https://github.com/matthewdeanmartin/troml_dev_status/blob/main/LICENSE.md) |
-| Last Commit    | ![Last Commit](https://img.shields.io/github/last-commit/matthewdeanmartin/troml_dev_status) |
+| Metric         | Status                                                                                                                                                                                                                |
+|----------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Coverage       | [![codecov](https://codecov.io/gh/matthewdeanmartin/troml_dev_status/branch/main/graph/badge.svg)](https://codecov.io/gh/matthewdeanmartin/troml_dev_status)                                                          |
+| Docs           | [![Docs](https://readthedocs.org/projects/troml_dev_status/badge/?version=latest)](https://troml_dev_status.readthedocs.io/en/latest/)                                                                                |
+| PyPI           | [![PyPI](https://img.shields.io/pypi/v/troml_dev_status)](https://pypi.org/project/troml_dev_status/)                                                                                                                 |
+| Downloads      | [![Downloads](https://static.pepy.tech/personalized-badge/troml-dev-status?period=total&units=international_system&left_color=grey&right_color=blue&left_text=Downloads)](https://pepy.tech/project/troml_dev_status) |
+| License        | [![License](https://img.shields.io/github/license/matthewdeanmartin/troml_dev_status)](https://github.com/matthewdeanmartin/troml_dev_status/blob/main/LICENSE.md)                                                    |
+| Last Commit    | ![Last Commit](https://img.shields.io/github/last-commit/matthewdeanmartin/troml_dev_status)                                                                                                                          |
 
 ## Libray info pages
 - [troml_dev_status](https://libraries.io/pypi/troml_dev_status)
