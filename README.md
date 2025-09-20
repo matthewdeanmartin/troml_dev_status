@@ -1,13 +1,36 @@
 # troml_dev_status
+
 Project inspired by troml to suggest a Development Status based solely on objective criteria.
 
-A tool to objectively infer PyPI "Development Status" classifiers from code and release artifacts, based on the 
+A tool to objectively infer PyPI "Development Status" classifiers from code and release artifacts, based on the
 [draft PEP ∞](https://github.com/matthewdeanmartin/troml_dev_status/blob/main/docs/PEP.md).
+
+Meanings
+
+- Development Status :: 1 - Planning - Minimum score. All projects get at least Planning.
+- Development Status :: 2 - Pre-Alpha - Few points awarded by grading rubric.
+- Development Status :: 3 - Alpha - Many points awarded
+- Development Status :: 4 - Beta - Even more points awarded
+- Development Status :: 5 - Production/Stable - Perfect score
+- Development Status :: 6 - Mature - Production and signs of upgrade help, e.g. Deprecation 
+- Development Status :: 7 - Inactive - Impossible to award. If you publish now, you are active.
+
+In scope - easily graded metrics.
+
+Out of scope - vibes, intentions, promises, support contracts, budget, staffing.
+
+Also out of scope - linting, type annotations, code coverage in the sense of running third party tools at eval time.
+
+Surprisingly out of scope - interface and API stability. Impossible to evaluate in Python (several noble attempts!),
+depends on developer wishes, hopes, aspirations, vibes which require psychology tests, not build tools.
+
 
 ## Installation
 
+Should be safe to pipx install so as to not mix your dependencies with the tool's
+
 ```bash
-pip install troml-dev-status
+pipx install troml-dev-status
 ````
 
 ## Usage
@@ -25,7 +48,8 @@ troml-dev-status verify /path/to/your/project
 troml-dev-status update /path/to/your/project 
 ```
 
-The tool will analyze the project's PyPI releases, Git history, and source code to produce an evidence-based "Development Status" classifier.
+The tool will analyze the project's PyPI releases, Git history, and source code to produce an evidence-based "
+Development Status" classifier.
 
 ## Output
 
@@ -71,16 +95,17 @@ The tool also prints a detailed JSON object containing the results of every chec
 
 ## Project Health
 
-| Metric         | Status                                                                                                                                                                                                                |
-|----------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Coverage       | [![codecov](https://codecov.io/gh/matthewdeanmartin/troml_dev_status/branch/main/graph/badge.svg)](https://codecov.io/gh/matthewdeanmartin/troml_dev_status)                                                          |
-| Docs           | [![Docs](https://readthedocs.org/projects/troml_dev_status/badge/?version=latest)](https://troml_dev_status.readthedocs.io/en/latest/)                                                                                |
-| PyPI           | [![PyPI](https://img.shields.io/pypi/v/troml_dev_status)](https://pypi.org/project/troml_dev_status/)                                                                                                                 |
-| Downloads      | [![Downloads](https://static.pepy.tech/personalized-badge/troml-dev-status?period=total&units=international_system&left_color=grey&right_color=blue&left_text=Downloads)](https://pepy.tech/project/troml_dev_status) |
-| License        | [![License](https://img.shields.io/github/license/matthewdeanmartin/troml_dev_status)](https://github.com/matthewdeanmartin/troml_dev_status/blob/main/LICENSE.md)                                                    |
-| Last Commit    | ![Last Commit](https://img.shields.io/github/last-commit/matthewdeanmartin/troml_dev_status)                                                                                                                          |
+| Metric      | Status                                                                                                                                                                                                                |
+|-------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Coverage    | [![codecov](https://codecov.io/gh/matthewdeanmartin/troml_dev_status/branch/main/graph/badge.svg)](https://codecov.io/gh/matthewdeanmartin/troml_dev_status)                                                          |
+| Docs        | [![Docs](https://readthedocs.org/projects/troml_dev_status/badge/?version=latest)](https://troml_dev_status.readthedocs.io/en/latest/)                                                                                |
+| PyPI        | [![PyPI](https://img.shields.io/pypi/v/troml_dev_status)](https://pypi.org/project/troml_dev_status/)                                                                                                                 |
+| Downloads   | [![Downloads](https://static.pepy.tech/personalized-badge/troml-dev-status?period=total&units=international_system&left_color=grey&right_color=blue&left_text=Downloads)](https://pepy.tech/project/troml_dev_status) |
+| License     | [![License](https://img.shields.io/github/license/matthewdeanmartin/troml_dev_status)](https://github.com/matthewdeanmartin/troml_dev_status/blob/main/LICENSE.md)                                                    |
+| Last Commit | ![Last Commit](https://img.shields.io/github/last-commit/matthewdeanmartin/troml_dev_status)                                                                                                                          |
 
 ## Libray info pages
+
 - [troml_dev_status](https://libraries.io/pypi/troml_dev_status)
 
 ## Snyk Security Pages

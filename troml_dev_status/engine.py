@@ -17,12 +17,21 @@ from troml_dev_status.checks import (
     check_q4_test_file_ratio,
     check_q5_type_hints_shipped,
     check_q6_docs_present,
+    check_q8_readme_complete,
+    check_q9_changelog_validates,
     check_r1_published_at_least_once,
     check_r2_wheel_sdist_present,
     check_r3_pep440_versioning,
     check_r4_recent_activity,
     check_r5_python_version_declaration,
     check_r6_current_python_coverage,
+    check_s1_all_exports,
+)
+from troml_dev_status.checks_completeness import (
+    check_cmpl1_todo_density,
+    check_cmpl2_notimplemented_ratio,
+    check_cmpl3_placeholder_pass_ratio,
+    check_cmpl4_stub_files_ratio,
 )
 from troml_dev_status.models import CheckResult, EvidenceReport, Metrics
 
@@ -71,8 +80,12 @@ def run_analysis(repo_path: Path, project_name: str) -> EvidenceReport:
         evidence="Checked for CHANGELOG.md",
     )
 
+    results["Q8"] = check_q8_readme_complete(repo_path)
+
+    results["Q9"] = check_q9_changelog_validates(repo_path)
+
     # S, D, C Checks (Stubs)
-    results["S1"] = CheckResult(passed=False, evidence="Not implemented.")
+    results["S1"] = check_s1_all_exports(repo_path)
     # results["S2"] = CheckResult(passed=False, evidence="Not implemented.")
     # results["S3"] = CheckResult(passed=False, evidence="Not implemented.")
     results["D1"] = CheckResult(passed=False, evidence="Not implemented.")
@@ -89,11 +102,10 @@ def run_analysis(repo_path: Path, project_name: str) -> EvidenceReport:
         results["M1"] = check_m1_project_age(pypi_data)
     results["M2 (12mo)"] = check_m2_code_motion(repo_path, months=12)
 
-    results["Cmpl1"] = CheckResult(passed=False, evidence="Not implemented.")
-    results["Cmpl2"] = CheckResult(passed=False, evidence="Not implemented.")
-    results["Cmpl3"] = CheckResult(passed=False, evidence="Not implemented.")
-    results["Cmpl4"] = CheckResult(passed=False, evidence="Not implemented.")
-    results["Cmpl5"] = CheckResult(passed=False, evidence="Not implemented.")
+    results["Cmpl1"] = check_cmpl1_todo_density(repo_path)
+    results["Cmpl2"] = check_cmpl2_notimplemented_ratio(repo_path)
+    results["Cmpl3"] = check_cmpl3_placeholder_pass_ratio(repo_path)
+    results["Cmpl4"] = check_cmpl4_stub_files_ratio(repo_path)
 
     # --- Classification Logic ---
     classifier, reason = determine_status(results, latest_version, metrics)

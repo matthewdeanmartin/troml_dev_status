@@ -23,6 +23,8 @@ CHECK_DESCRIPTIONS = {
     "Q5": "Shipped Type Hints",
     "Q6": "Docs Present",
     "Q7": "Changelog Present",
+    "Q8": "README complete",
+    "Q9": "Changelog validates",
     "S1": "Declares dunder-all",
     # "S2": "Stable SemVer API",
     # "S3": "Pre-1.0 API Churn",
@@ -37,7 +39,6 @@ CHECK_DESCRIPTIONS = {
     "Cmpl2": "NotImplemented usage",
     "Cmpl3": "Placeholder `pass`",
     "Cmpl4": "Stub files",
-    "Cmpl5": "Code coverage",
 }
 
 

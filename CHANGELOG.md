@@ -12,6 +12,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed for any bug fixes.
 - Security in case of vulnerabilities.
 
+## [0.3.0] - 2025-09-20
+
+### Added
+
+- Implemented changelog validates - q9
+- Implemented README complete - q8
+- Implemented Declares dunder-all - s1
+- Nothing reports NotImplemented now
+
+### Changed
+
+- More rules implemented so scale changed.
+
 ## [0.2.0] - 2025-09-16
 
 ### Changed

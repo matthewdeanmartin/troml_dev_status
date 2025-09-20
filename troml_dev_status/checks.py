@@ -5,6 +5,7 @@
 
 from __future__ import annotations
 
+import ast
 import re
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -26,6 +27,8 @@ from troml_dev_status.analysis.filesystem import (
 from troml_dev_status.analysis.find_tests import count_tests
 from troml_dev_status.analysis.git import get_latest_commit_date
 from troml_dev_status.analysis.pypi import latest_release_has_attestations
+from troml_dev_status.analysis.readme_eval import evaluate_readme
+from troml_dev_status.analysis.validate_changelog import ChangelogValidator
 from troml_dev_status.models import CheckResult
 from troml_dev_status.utils.support_per_endoflife import fetch_latest_supported_minor
 
@@ -220,6 +223,54 @@ def check_q6_docs_present(repo_path: Path) -> tuple[CheckResult, int]:
             passed=False, evidence="No docs config or sufficient README found."
         ),
         0,
+    )
+
+
+def check_q8_readme_complete(repo_path: Path) -> CheckResult:
+    readme_path = next(repo_path.glob("README*"), None)
+    if readme_path and readme_path.is_file():
+        content = readme_path.read_text(encoding="utf-8")
+        result = evaluate_readme(md=content)
+
+        suggestions = "\n".join(result.suggestions)
+
+        if result.total > (result.max_possible / 2):
+            return CheckResult(
+                passed=True,
+                evidence=f"README has scored {result.total} out of {result.max_possible}.",
+            )
+        return CheckResult(
+            passed=False,
+            evidence=f"README has scored {result.total} out of {result.max_possible}.\n{suggestions}",
+        )
+
+    return CheckResult(
+        passed=False, evidence="No docs config or sufficient README found."
+    )
+
+
+def check_q9_changelog_validates(repo_path: Path) -> CheckResult:
+
+    chagelog_path = next(repo_path.glob("CHANGELOG*"), None)
+    if chagelog_path and chagelog_path.is_file():
+        content = chagelog_path.read_text(encoding="utf-8")
+        validator = ChangelogValidator(file_name=str(chagelog_path))
+        result = validator.validate(content=content)
+
+        suggestions = "\n".join((_.message for _ in result))
+
+        if len(result) == 0:
+            return CheckResult(
+                passed=True,
+                evidence="Changelog validates to Keepachangelog schema",
+            )
+        return CheckResult(
+            passed=False,
+            evidence=f"Changelog doesn't validate.\n{suggestions}",
+        )
+
+    return CheckResult(
+        passed=False, evidence="No docs config or sufficient README found."
     )
 
 
@@ -600,3 +651,43 @@ def check_c4_repro_inputs(repo_path: Path) -> CheckResult:
         passed=False,
         evidence="No lockfile found (e.g., uv.lock, poetry.lock, requirements*.txt, constraints.txt).",
     )
+
+
+def has_all_exports(py_file: Path) -> bool:
+    """Parses a file and returns True if it defines __all__."""
+    try:
+        tree = ast.parse(py_file.read_text(encoding="utf-8"))
+    except SyntaxError:
+        return False
+    for node in tree.body:
+        if isinstance(node, ast.Assign):
+            for target in node.targets:
+                if isinstance(target, ast.Name) and target.id == "__all__":
+                    return True
+    return False
+
+
+def check_s1_all_exports(repo_path: Path) -> CheckResult:
+    """
+    Check if any module in the src dir defines __all__.
+    """
+    src_dir_path = find_src_dir(repo_path)
+    if not src_dir_path:
+        return CheckResult(passed=False, evidence="Could not find source directory.")
+
+    py_files = list(src_dir_path.rglob("*.py"))
+    if not py_files:
+        return CheckResult(
+            passed=False, evidence="No Python files in source directory."
+        )
+
+    files_with_all = [
+        str(f.relative_to(repo_path)) for f in py_files if has_all_exports(f)
+    ]
+
+    if files_with_all:
+        return CheckResult(
+            passed=True,
+            evidence=f"Found __all__ exports in: {', '.join(files_with_all)}",
+        )
+    return CheckResult(passed=False, evidence="No __all__ exports found in any module.")

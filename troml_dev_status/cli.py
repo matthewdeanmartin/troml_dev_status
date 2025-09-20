@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import sys
 from pathlib import Path
+from typing import Sequence
 
 from rich.console import Console
 
@@ -171,7 +172,7 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def main() -> int:
+def main(argv: Sequence[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args()
 
@@ -181,7 +182,7 @@ def main() -> int:
     if not getattr(args, "command", None):
         # Re-parse as analyze for backward compatibility
         sys.argv.insert(1, "analyze")
-        args = parser.parse_args()
+        args = parser.parse_args(args=argv)
 
     return args.func(args, console)
 

@@ -100,6 +100,9 @@ have type annotations (static count via AST).
 
 **Q7. CHANGELOG present:** `CHANGELOG*` (or `NEWS*`) exists with ≥ **3** dated entries.
 
+**Q8. Docs quality scored:** A README has common sections, a high school readability score, badges, code examples and
+log documents have a table of contents.
+
 ### API Declaration
 
 Define **public symbol** = any name in `__all__`, or not prefixed `_`, from modules under the top-level package.
