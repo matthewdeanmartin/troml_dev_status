@@ -5,6 +5,9 @@ Project inspired by troml to suggest a Development Status based solely on object
 A tool to objectively infer PyPI "Development Status" classifiers from code and release artifacts, based on the
 [draft PEP ∞](https://github.com/matthewdeanmartin/troml_dev_status/blob/main/docs/PEP.md).
 
+As far as I know, no python authority has given objective criteria for development status and the meaning is 
+private to each user. Development status gets brief mention in PEP301.
+
 Meanings
 
 - Development Status :: 1 - Planning - Minimum score. All projects get at least Planning.
@@ -12,7 +15,7 @@ Meanings
 - Development Status :: 3 - Alpha - Many points awarded
 - Development Status :: 4 - Beta - Even more points awarded
 - Development Status :: 5 - Production/Stable - Perfect score
-- Development Status :: 6 - Mature - Production and signs of upgrade help, e.g. Deprecation 
+- Development Status :: 6 - Mature - Production and signs of upgrade help, e.g. Deprecation
 - Development Status :: 7 - Inactive - Impossible to award. If you publish now, you are active.
 
 In scope - easily graded metrics.
@@ -23,7 +26,6 @@ Also out of scope - linting, type annotations, code coverage in the sense of run
 
 Surprisingly out of scope - interface and API stability. Impossible to evaluate in Python (several noble attempts!),
 depends on developer wishes, hopes, aspirations, vibes which require psychology tests, not build tools.
-
 
 ## Installation
 
@@ -58,17 +60,23 @@ The tool outputs a human-readable summary table and a machine-readable JSON repo
 ### Example Human-Readable Output
 
 ```text
-┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-┃ Check ID                         ┃ Status ┃ Evidence                                    ┃
-┡━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩
-│ R1. Published at least once      │   OK   │ Found 15 releases on PyPI for 'my-package'  │
-│ R2. Wheel + sdist present        │   OK   │ Latest release 1.2.3 has wheel and sdist    │
-│ ...                              │   ...  │ ...                                         │
-│ Q5. Type hints shipped           │   X    │ 45.8% of 120 public symbols are annotated   │
-│ ...                              │   ...  │ ...                                         │
-└──────────────────────────────────┴────────┴─────────────────────────────────────────────┘
-          Final Inferred Classifier: Development Status :: 4 - Beta
- Reason: EPS=16/19; version 0.8.0 < 1.0.0; recent release (35 days ago)
+                              Development Status Analysis for troml-dev-status                              
+┏━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ ID           ┃ Description                 ┃ Status ┃ Evidence                                           ┃
+┡━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩
+│ C1           │ SECURITY.md Present         │   OK   │ Checked for security files                         │
+├──────────────┼─────────────────────────────┼────────┼────────────────────────────────────────────────────┤
+│ C2           │ Trusted Publisher           │   OK   │ All files in most recent package are attested.     │
+├──────────────┼─────────────────────────────┼────────┼────────────────────────────────────────────────────┤
+│ C3           │ Dependencies Pinned         │   X    │ Found 3 not strictly pinned somehow: textstat,     │
+│              │                             │        │ llvm-diagnostics, semantic-version.                │
+├──────────────┼─────────────────────────────┼────────┼────────────────────────────────────────────────────┤
+│ C4           │ Reproducible Dev Env        │   OK   │ Found uv lockfile ('uv.lock').                     │
+...
+
+Final Inferred Classifier: Development Status :: 4 - Beta
+Reason: EPS=13/18; version 0.2.0 < 1.0.0; recent release; S3 holds.
+
 ```
 
 ### Example JSON Output
@@ -101,10 +109,10 @@ The tool also prints a detailed JSON object containing the results of every chec
 | Docs        | [![Docs](https://readthedocs.org/projects/troml_dev_status/badge/?version=latest)](https://troml_dev_status.readthedocs.io/en/latest/)                                                                                |
 | PyPI        | [![PyPI](https://img.shields.io/pypi/v/troml_dev_status)](https://pypi.org/project/troml_dev_status/)                                                                                                                 |
 | Downloads   | [![Downloads](https://static.pepy.tech/personalized-badge/troml-dev-status?period=total&units=international_system&left_color=grey&right_color=blue&left_text=Downloads)](https://pepy.tech/project/troml_dev_status) |
-| License     | [![License](https://img.shields.io/github/license/matthewdeanmartin/troml_dev_status)](https://github.com/matthewdeanmartin/troml_dev_status/blob/main/LICENSE.md)                                                    |
+| License     | [![License](https://img.shields.io/github/license/matthewdeanmartin/troml_dev_status)](https://github.com/matthewdeanmartin/troml_dev_status/blob/main/LICENSE)                                                       |
 | Last Commit | ![Last Commit](https://img.shields.io/github/last-commit/matthewdeanmartin/troml_dev_status)                                                                                                                          |
 
-## Libray info pages
+## Library info pages
 
 - [troml_dev_status](https://libraries.io/pypi/troml_dev_status)
 
@@ -114,7 +122,17 @@ The tool also prints a detailed JSON object containing the results of every chec
 
 ## Prior Art
 
-- [check-python-versions](https://pypi.org/project/check-python-versions/)
-- [pyproject-fmt](https://pypi.org/project/pyproject-fmt/)
+Autofill/Suggest
 - [troml](https://pypi.org/project/troml/)
+- [check-python-versions](https://pypi.org/project/check-python-versions/)
+
+Validate
+- [classifier-checker](https://pypi.org/project/classifier-checker/)
 - [pyroma](https://pypi.org/project/pyroma/)
+
+Raw Data
+- [trove-classifiers](https://pypi.org/project/trove-classifiers/)
+- [trove-classifiers-cli](https://pypi.org/project/trove-classifiers-cli/)
+
+UI/Initialization
+- [trove-setup](https://pypi.org/project/trove-setup/)

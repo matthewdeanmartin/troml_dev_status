@@ -32,6 +32,7 @@ from troml_dev_status.analysis.validate_changelog import ChangelogValidator
 from troml_dev_status.models import CheckResult
 from troml_dev_status.utils.support_per_endoflife import fetch_latest_supported_minor
 
+
 # --- Check Functions ---
 
 
@@ -46,7 +47,7 @@ def check_r1_published_at_least_once(pypi_data: dict | None) -> CheckResult:
 
 
 def check_r2_wheel_sdist_present(
-    pypi_data: dict, latest_version: Version
+        pypi_data: dict, latest_version: Version
 ) -> CheckResult:
     releases = pypi_data.get("releases", {}).get(str(latest_version), [])
     has_wheel = any(f["packagetype"] == "bdist_wheel" for f in releases)
@@ -61,7 +62,7 @@ def check_r2_wheel_sdist_present(
 
 
 def check_r4_recent_activity(
-    pypi_data: dict, latest_version: Version, months: int
+        pypi_data: dict, latest_version: Version, months: int
 ) -> CheckResult:
     releases = pypi_data.get("releases", {}).get(str(latest_version), [])
     if not releases:
@@ -183,9 +184,9 @@ def check_q5_type_hints_shipped(repo_path: Path) -> tuple[CheckResult, float, in
 def check_q6_docs_present(repo_path: Path) -> tuple[CheckResult, int]:
     docs_dir = repo_path / "docs"
     if docs_dir.is_dir() and (
-        (docs_dir / "conf.py").exists()
-        or (docs_dir / "mkdocs.yml").exists()
-        or (repo_path / "mkdocs.yml").exists()
+            (docs_dir / "conf.py").exists()
+            or (docs_dir / "mkdocs.yml").exists()
+            or (repo_path / "mkdocs.yml").exists()
     ):
         return (
             CheckResult(
@@ -250,7 +251,6 @@ def check_q8_readme_complete(repo_path: Path) -> CheckResult:
 
 
 def check_q9_changelog_validates(repo_path: Path) -> CheckResult:
-
     chagelog_path = next(repo_path.glob("CHANGELOG*"), None)
     if chagelog_path and chagelog_path.is_file():
         content = chagelog_path.read_text(encoding="utf-8")
@@ -372,7 +372,7 @@ def check_c3_minimal_pin_sanity(repo_path: Path, mode: str) -> CheckResult:
             elif mode == "application":
                 # Stricter logic: Fail if not pinned with '=='
                 if len(req.specifier) != 1 or next(
-                    iter(req.specifier)
+                        iter(req.specifier)
                 ).operator not in ("==", "<=", "<", ">=", ">"):
                     failed_deps.append(dep_string)
         except InvalidRequirement:
@@ -451,7 +451,7 @@ def check_r3_pep440_versioning(pypi_data: dict | None) -> CheckResult:
 
 
 def check_r5_python_version_declaration(
-    repo_path: Path, pypi_data: dict | None
+        repo_path: Path, pypi_data: dict | None
 ) -> CheckResult:
     """
     Checks for Requires-Python in pyproject.toml and a Python trove classifier on PyPI.
@@ -502,9 +502,9 @@ def _python_minor_classifiers(classifiers: list[str]) -> list[str]:
 
 
 def check_r6_current_python_coverage(
-    pypi_data: dict,
-    *,
-    timeout: float = 10.0,
+        pypi_data: dict,
+        *,
+        timeout: float = 10.0,
 ) -> CheckResult:
     """
     R6. Current Python coverage: Declared support includes current-1 CPython minor.
@@ -566,7 +566,7 @@ def check_r6_current_python_coverage(
 
     # Prepare helpful evidence
     declared_py_classifiers = (
-        ", ".join(sorted(_python_minor_classifiers(classifiers))) or "none"
+            ", ".join(sorted(_python_minor_classifiers(classifiers))) or "none"
     )
     req_str = requires_python if requires_python else "none"
 
@@ -581,50 +581,6 @@ def check_r6_current_python_coverage(
     )
 
 
-# def check_r6_current_python_coverage(repo_path: Path) -> CheckResult:
-#     """
-#     Checks if declared Python support includes the 'current-1' CPython minor version.
-#     """
-#     toml_path = repo_path / "pyproject.toml"
-#     if not toml_path.exists():
-#         return CheckResult(passed=False, evidence="pyproject.toml not found.")
-#
-#     requires_python_str = None
-#     try:
-#         with toml_path.open("rb") as f:
-#             data = filesystem.tomllib.load(f)
-#         requires_python_str = data.get("project", {}).get("requires-python")
-#     except filesystem.tomllib.TOMLDecodeError:
-#         return CheckResult(passed=False, evidence="Could not parse pyproject.toml.")
-#
-#     if not requires_python_str:
-#         return CheckResult(
-#             passed=False,
-#             evidence="'project.requires-python' not found in pyproject.toml.",
-#         )
-#
-#     try:
-#         spec_set = SpecifierSet(requires_python_str)
-#     except InvalidSpecifier:
-#         return CheckResult(
-#             passed=False, evidence=f"Invalid specifier string: '{requires_python_str}'"
-#         )
-#
-#     target_major, target_minor = _get_current_supported_python_minor()
-#     target_version_str = f"{target_major}.{target_minor}"
-#
-#     if spec_set.contains(target_version_str):
-#         return CheckResult(
-#             passed=True,
-#             evidence=f"'{requires_python_str}' supports current-1 Python ({target_version_str}).",
-#         )
-#
-#     return CheckResult(
-#         passed=False,
-#         evidence=f"'{requires_python_str}' does not support current-1 Python ({target_version_str}).",
-#     )
-
-
 def check_c4_repro_inputs(repo_path: Path) -> CheckResult:
     """
     Checks for the presence of a lockfile for reproducible development environments.
@@ -636,9 +592,9 @@ def check_c4_repro_inputs(repo_path: Path) -> CheckResult:
     }
 
     # Check for exact matches
-    for fname, desc in lockfiles.items():
-        if (repo_path / fname).exists():
-            return CheckResult(passed=True, evidence=f"Found {desc} ('{fname}').")
+    for file_name, desc in lockfiles.items():
+        if (repo_path / file_name).exists():
+            return CheckResult(passed=True, evidence=f"Found {desc} ('{file_name}').")
 
     # Check for glob patterns like requirements*.txt
     req_files = list(repo_path.glob("requirements*.txt"))

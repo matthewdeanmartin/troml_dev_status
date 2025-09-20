@@ -83,7 +83,7 @@ bandit: .build_history/bandit
 # for when using -j (jobs, run in parallel)
 .NOTPARALLEL: .build_history/isort .build_history/black
 
-check: mypy test pylint bandit pre-commit
+check: mypy test pylint bandit pre-commit update_dev_status
 
 #.PHONY: publish_test
 #publish_test:
@@ -143,3 +143,6 @@ issues:
 core_all_tests:
 	./scripts/exercise_core_all.sh troml_dev_status "compile --in examples/compile/src --out examples/compile/out --dry-run"
 	uv sync
+
+update_dev_status:
+	python -m troml_dev_status update .
