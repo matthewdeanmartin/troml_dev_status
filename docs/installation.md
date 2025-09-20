@@ -4,6 +4,7 @@ It is highly recommended to install `troml-dev-status` into an isolated environm
 
 ```bash
 pipx install troml-dev-status
+```
 
 If you prefer, you can also install it with pip:
 

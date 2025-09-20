@@ -342,12 +342,3 @@ implement; maintainers remain free to declare any classifier.
 * **Project age:** ≥90 days since first PyPI release for M1.
 
 * **Trusted Publisher:** Latest release tag must use trusted-publisher; inability to verify counts as fail.
-
----
-
-
-App will
-
-* runs these checks,
-
-* emits the JSON evidence + a neat table,

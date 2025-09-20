@@ -3,11 +3,14 @@ from __future__ import annotations
 
 import datetime as _dt
 import json as _json
+import logging
 import re as _re
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Tuple
 
 import httpx
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True)

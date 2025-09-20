@@ -1,7 +1,11 @@
 # troml_dev_status/utils/support_per_endoflife.py
 from __future__ import annotations
 
+import logging
+
 import httpx
+
+logger = logging.getLogger(__name__)
 
 
 def fetch_latest_supported_minor(*, timeout: float = 10.0) -> tuple[int, list[str]]:

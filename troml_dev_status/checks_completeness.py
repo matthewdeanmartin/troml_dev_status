@@ -2,14 +2,18 @@
 from __future__ import annotations
 
 import ast
+import logging
+import os
 import re
 from pathlib import Path
 from typing import Iterable, Iterator
 
 import pathspec
 
+from troml_dev_status.analysis.filesystem import find_src_dir
 from troml_dev_status.models import CheckResult
 
+logger = logging.getLogger(__name__)
 # ---- shared helpers ------------------------------------------------------------
 
 _SKIP_DIRS = {
@@ -38,6 +42,9 @@ _DOC_EXTS = {".md", ".rst", ".txt", ""}  # "" -> files like LICENSE, NOTICE, etc
 _TODO_RE = re.compile(r"\b(?:TODO|FIXME|BUG)\b", re.IGNORECASE)
 
 
+_VENV_NAME_RE = re.compile(r"^(?:\.?venv|\.?env)(?:[-._]?\w+)*$", re.IGNORECASE)
+
+
 def _read_text(path: Path) -> str:
     try:
         # Read as bytes then decode with fallback to be robust on odd encodings
@@ -46,27 +53,45 @@ def _read_text(path: Path) -> str:
         return ""
 
 
+_VENV_NAME_RE = re.compile(r"^(?:\.?venv|\.?env)(?:[-._]?\w+)*$", re.IGNORECASE)
+
+
+def _git_toplevel(start: Path) -> Path:
+    """Best-effort: return the git repo root; fall back to `start` if not found."""
+    cur = start.resolve()
+    for p in [cur] + list(cur.parents):
+        if (p / ".git").exists():
+            return p
+    return start
+
+
 def _load_gitignore_spec(repo_path: Path):
-    if pathspec is None:
-        return None
-    gi = repo_path / ".gitignore"
-    if not gi.exists():
-        return None
+    """Load only the top-level .gitignore (avoid nested rebase pitfalls)."""
     try:
-        spec = pathspec.PathSpec.from_lines("gitwildmatch", gi.read_text().splitlines())
-        return spec
+        repo_root = _git_toplevel(repo_path)
+        gi = repo_root / ".gitignore"
+        if not gi.exists():
+            return None, repo_root
+        lines = gi.read_text(encoding="utf-8", errors="replace").splitlines()
+        spec = pathspec.PathSpec.from_lines("gitwildmatch", lines)
+        return spec, repo_root
     except Exception:
-        return None
+        return None, repo_path
 
 
-def _is_ignored(repo_path: Path, p: Path, spec) -> bool:
+def _is_ignored(repo_root: Path, p: Path, spec) -> bool:
     if spec is None:
         return False
     try:
-        rel = p.relative_to(repo_path).as_posix()
+        rel = p.resolve().relative_to(repo_root.resolve()).as_posix()
     except ValueError:
         rel = p.as_posix()
     return spec.match_file(rel)
+
+
+def os_walk_no_follow(start: Path) -> Iterator[tuple[str, list[str], list[str]]]:
+    for root, dirs, files in os.walk(start, topdown=True, followlinks=False):
+        yield root, dirs, files
 
 
 def _iter_files(
@@ -75,30 +100,30 @@ def _iter_files(
     respect_gitignore: bool = True,
 ) -> Iterator[Path]:
     """
-    Walk repo and yield files that (a) have desired extension (or "" for no ext),
-    (b) are not inside known skip dirs, and (c) are not .gitignored if spec is available.
+    Yield files in repo_path with ext in include_exts (or "" for no ext),
+    skipping common junk + venv-like dirs, and (optionally) honoring top-level .gitignore.
     """
-    spec = _load_gitignore_spec(repo_path) if respect_gitignore else None
+    spec, repo_root = (
+        _load_gitignore_spec(repo_path) if respect_gitignore else (None, repo_path)
+    )
+
     for root, dirs, files in os_walk_no_follow(repo_path):
-        # prune unwanted directories early
-        dirs[:] = [d for d in dirs if d not in _SKIP_DIRS]
         root_path = Path(root)
+
+        # Hard prune by name and venv-like patterns (works even w/o .gitignore)
+        dirs[:] = [
+            d for d in dirs if d not in _SKIP_DIRS and not _VENV_NAME_RE.match(d)
+        ]
 
         for name in files:
             p = root_path / name
-            if respect_gitignore and _is_ignored(repo_path, p, spec):
+
+            if respect_gitignore and _is_ignored(repo_root, p, spec):
                 continue
+
             ext = p.suffix
             if ext in include_exts or ("" in include_exts and ext == ""):
                 yield p
-
-
-def os_walk_no_follow(start: Path) -> Iterator[tuple[str, list[str], list[str]]]:
-    """Like os.walk, but never follows symlinks (safer for repos)."""
-    import os
-
-    for root, dirs, files in os.walk(start, topdown=True, followlinks=False):
-        yield root, dirs, files
 
 
 def _count_nonempty_py_loc(py_files: Iterable[Path]) -> int:
@@ -123,6 +148,7 @@ def check_cmpl1_todo_density(repo_path: Path) -> CheckResult:
     Count TODO/FIXME/BUG occurrences in code and docs.
     Fail if > 5 markers per 1000 non-empty Python LOC.
     """
+    repo_path = find_src_dir(repo_path) or repo_path
     py_files = list(_iter_files(repo_path, _CODE_EXTS))
     doc_files = list(_iter_files(repo_path, _DOC_EXTS))
 
@@ -361,6 +387,9 @@ def _is_stub_file(path: Path) -> bool:
         OR the only top-level definitions are empty classes (single 'pass')
         and empty functions (pass or NotImplementedError).
     """
+    if path.name in ("__init__.py", "py.typed"):
+        return False
+
     txt = _read_text(path)
     nonempty_lines = [ln for ln in txt.splitlines() if ln.strip()]
     if len(nonempty_lines) >= 10:

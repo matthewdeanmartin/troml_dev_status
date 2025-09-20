@@ -1,9 +1,12 @@
 # troml_dev_status/analysis/git.py
 from __future__ import annotations
 
+import logging
 import subprocess  # nosec
 from datetime import datetime, timezone
 from pathlib import Path
+
+logger = logging.getLogger(__name__)
 
 
 def _run_git_command(cwd: Path, *args: str) -> str | None:

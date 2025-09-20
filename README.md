@@ -136,3 +136,7 @@ Raw Data
 
 UI/Initialization
 - [trove-setup](https://pypi.org/project/trove-setup/)
+
+License Tracking
+- [pip-licenses](https://github.com/raimon49/pip-licenses)
+

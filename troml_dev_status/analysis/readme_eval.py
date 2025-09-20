@@ -4,18 +4,15 @@ from __future__ import annotations
 import argparse
 import ast
 import json
+import logging
 import re
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple
 
-# ---- optional dependency for readability -------------------------------------
-try:
-    import textstat  # type: ignore
-except Exception:  # pragma: no cover
-    textstat = None  # we'll handle gracefully
+import textstat
 
-
+logger = logging.getLogger(__name__)
 # ---- config ------------------------------------------------------------------
 
 # Synonyms for sections we consider “expected”.

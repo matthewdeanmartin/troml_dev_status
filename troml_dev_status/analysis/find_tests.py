@@ -1,10 +1,13 @@
 # troml_dev_status/analysis/find_tests.py
 from __future__ import annotations
 
+import logging
 import subprocess  # nosec
 import unittest
 from pathlib import Path
 from typing import Iterable, List, Tuple
+
+logger = logging.getLogger(__name__)
 
 
 def _existing_dirs(repo_path: Path, candidate_dirs: Iterable[str]) -> List[Path]:
@@ -66,7 +69,7 @@ def _count_pytest(repo_path: Path, start_dirs: Iterable[str]) -> int:
         )
     except FileNotFoundError:
         # pytest not installed or Python can't spawn
-        raise
+        # raise
         return 0
 
     # Pytest with -q --collect-only prints nodeids line-by-line.
@@ -114,15 +117,15 @@ def count_tests(
     if start_dirs is None:
         start_dirs = ("test", "tests")
 
-    # 1) Try unittest discovery
-    unit_count = _count_unittest(repo_path, start_dirs)
-    if unit_count > 0:
-        return ("unittest", unit_count)
-
     # 2) Fall back to pytest collection
     py_count = _count_pytest(repo_path, start_dirs)
     if py_count > 0:
         return ("pytest", py_count)
+
+    # 1) Try unittest discovery
+    unit_count = _count_unittest(repo_path, start_dirs)
+    if unit_count > 0:
+        return ("unittest", unit_count)
 
     return ("none", 0)
 

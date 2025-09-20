@@ -1,6 +1,7 @@
 # troml_dev_status/analysis/bureaucracy.py
 from __future__ import annotations
 
+import logging
 import re
 from dataclasses import dataclass
 from pathlib import Path
@@ -8,6 +9,7 @@ from typing import Dict, Iterable, Iterator, List, Mapping, Pattern, Set, Tuple
 
 import pathspec
 
+logger = logging.getLogger(__name__)
 # ---- categories we recognize -------------------------------------------------
 
 # Keep these stable so users can filter reliably.

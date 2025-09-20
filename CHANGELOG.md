@@ -12,6 +12,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed for any bug fixes.
 - Security in case of vulnerabilities.
 
+## [0.3.1] - 2025-09-20
+
+### Added
+
+- New output formats.
+
+### Fixed
+
+- Bugs related to poetry config, setup.cfg, counting files in .venv, null safety
+
 ## [0.3.0] - 2025-09-20
 
 ### Added

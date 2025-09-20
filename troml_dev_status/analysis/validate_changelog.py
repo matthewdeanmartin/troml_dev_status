@@ -4,20 +4,14 @@ A standalone validator for changelog strings based on the 'Keep a Changelog' for
 """
 
 import datetime
+import logging
 import re
 from typing import Iterable, List
 
-# To make this file fully standalone, we install dependencies if they are missing.
-# In a real library, these would be in setup.py or requirements.txt.
-try:
-    import llvm_diagnostics as logging
-    from semantic_version import Version
-except ImportError:
-    print(
-        "Dependencies not found. Please run: pip install llvm-diagnostics semantic-version"
-    )
-    exit(1)
+import llvm_diagnostics
+from semantic_version import Version
 
+logger = logging.getLogger(__name__)
 
 # --- Dependencies copied from change_types.py ---
 
@@ -46,7 +40,7 @@ class ChangelogValidator:
         """
         self._file_name = file_name
 
-    def validate(self, content: str) -> List[logging.Error]:
+    def validate(self, content: str) -> List[llvm_diagnostics.Error]:
         """
         Validates the changelog content from a string.
 
@@ -54,7 +48,7 @@ class ChangelogValidator:
             content: The full changelog file content as a string.
 
         Returns:
-            A list of logging.Error objects. The list is empty if validation succeeds.
+            A list of llvm_diagnostics.Error objects. The list is empty if validation succeeds.
         """
         errors = []
         lines = content.splitlines()
@@ -67,30 +61,34 @@ class ChangelogValidator:
 
     def _validate_change_heading(
         self, line_number: int, line: str, depth: int, content: str
-    ) -> Iterable[logging.Error]:
+    ) -> Iterable[llvm_diagnostics.Error]:
         """Check if acceptable change type keywords are present (e.g., ### Added)."""
         accepted_types = [change_type.title() for change_type in TypesOfChange]
         if content not in accepted_types:
             friendly_types = ", ".join(accepted_types)
-            yield logging.Error(
+            yield llvm_diagnostics.Error(
                 file_path=self._file_name,
                 line=line,
-                line_number=logging.Range(start=line_number),
-                column_number=logging.Range(start=depth + 2, range=len(content)),
+                line_number=llvm_diagnostics.Range(start=line_number),
+                column_number=llvm_diagnostics.Range(
+                    start=depth + 2, range=len(content)
+                ),
                 message=f"Incompatible change type, MUST be one of: {friendly_types}",
             )
 
     def _validate_version_heading(
         self, line_number: int, line: str, depth: int, content: str
-    ) -> Iterable[logging.Error]:
+    ) -> Iterable[llvm_diagnostics.Error]:
         """Check if a version heading is valid (e.g., ## [1.0.0] - 2025-09-20)."""
         match = re.compile(r"\[(.*)\](.*)").match(content)
         if not match:
-            yield logging.Error(
+            yield llvm_diagnostics.Error(
                 file_path=self._file_name,
                 line=line,
-                line_number=logging.Range(start=line_number),
-                column_number=logging.Range(start=depth + 2, range=len(content)),
+                line_number=llvm_diagnostics.Range(start=line_number),
+                column_number=llvm_diagnostics.Range(
+                    start=depth + 2, range=len(content)
+                ),
                 message="Missing version tag like [1.0.0] or [Unreleased]",
             )
             return
@@ -102,11 +100,11 @@ class ChangelogValidator:
         try:
             Version(version_str)
         except ValueError:
-            yield logging.Error(
+            yield llvm_diagnostics.Error(
                 file_path=self._file_name,
                 line=line,
-                line_number=logging.Range(start=line_number),
-                column_number=logging.Range(
+                line_number=llvm_diagnostics.Range(start=line_number),
+                column_number=llvm_diagnostics.Range(
                     start=line.find("[") + 2, range=len(version_str)
                 ),
                 message=f"Version '{version_str}' is not SemVer compliant",
@@ -114,11 +112,11 @@ class ChangelogValidator:
 
         metadata_match = re.compile(r" - (.*)").match(match.group(2))
         if not metadata_match:
-            yield logging.Error(
+            yield llvm_diagnostics.Error(
                 file_path=self._file_name,
                 line=line,
-                line_number=logging.Range(start=line_number),
-                column_number=logging.Range(start=line.find("]") + 2),
+                line_number=llvm_diagnostics.Range(start=line_number),
+                column_number=llvm_diagnostics.Range(start=line.find("]") + 2),
                 message=f"Missing date metadata ('- YYYY-MM-DD') for version '{version_str}'",
             )
             return
@@ -127,17 +125,19 @@ class ChangelogValidator:
         try:
             datetime.datetime.strptime(release_date, "%Y-%m-%d")
         except ValueError:
-            yield logging.Error(
+            yield llvm_diagnostics.Error(
                 file_path=self._file_name,
                 line=line,
-                line_number=logging.Range(start=line_number),
-                column_number=logging.Range(
+                line_number=llvm_diagnostics.Range(start=line_number),
+                column_number=llvm_diagnostics.Range(
                     start=line.find(" - ") + 4, range=len(release_date)
                 ),
                 message=f"Release date for version '{version_str}' is not 'YYYY-MM-DD' format",
             )
 
-    def _validate_heading(self, line_number: int, line: str) -> Iterable[logging.Error]:
+    def _validate_heading(
+        self, line_number: int, line: str
+    ) -> Iterable[llvm_diagnostics.Error]:
         """Validate that a markdown heading is at a valid depth."""
         match = re.compile(r"^(#{1,6}) (.*)").match(line)
         if not match:
@@ -147,11 +147,11 @@ class ChangelogValidator:
         content = match.group(2)
 
         if depth > 3:
-            yield logging.Error(
+            yield llvm_diagnostics.Error(
                 file_path=self._file_name,
                 line=line,
-                line_number=logging.Range(start=line_number),
-                column_number=logging.Range(start=1, range=depth),
+                line_number=llvm_diagnostics.Range(start=line_number),
+                column_number=llvm_diagnostics.Range(start=1, range=depth),
                 message="Heading depth is too high; MUST be 1, 2, or 3.",
             )
             return
@@ -161,7 +161,9 @@ class ChangelogValidator:
         elif depth == 3:
             yield from self._validate_change_heading(line_number, line, depth, content)
 
-    def _validate_entry(self, line_number: int, line: str) -> Iterable[logging.Error]:
+    def _validate_entry(
+        self, line_number: int, line: str
+    ) -> Iterable[llvm_diagnostics.Error]:
         """Validate that a changelog entry does not contain invalid nested elements."""
         match = re.compile(r"^\s*[-+*] (.*)").match(line)
         if not match:
@@ -170,11 +172,13 @@ class ChangelogValidator:
         entry_content = match.group(1)
         # Rule: Sub-lists are not permitted in changelog entries.
         if re.compile(r"^\s*[-+*] ").match(entry_content):
-            yield logging.Error(
+            yield llvm_diagnostics.Error(
                 file_path=self._file_name,
                 line=line,
-                line_number=logging.Range(start=line_number),
-                column_number=logging.Range(start=line.find(entry_content) + 1),
+                line_number=llvm_diagnostics.Range(start=line_number),
+                column_number=llvm_diagnostics.Range(
+                    start=line.find(entry_content) + 1
+                ),
                 message="Sub-lists are not permitted in changelog entries.",
             )
 

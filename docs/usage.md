@@ -12,7 +12,7 @@ troml-dev-status analyze /path/to/your/project
 
 You can also output the full results as a machine-readable JSON object.
 
-```Bash
+```bash
 troml-dev-status analyze /path/to/your/project --json
 ```
 
@@ -60,7 +60,7 @@ Reason: EPS=13/18; version 0.2.0 < 1.0.0; recent release; S3 holds.
 
 Using the --json flag produces a detailed report suitable for automation.
 
-```JSON
+```json
 {
   "inferred_classifier": "Development Status :: 4 - Beta",
   "reason": "EPS=13/18; version 0.2.0 < 1.0.0; recent release; S3 holds.",

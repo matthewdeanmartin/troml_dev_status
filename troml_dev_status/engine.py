@@ -1,6 +1,7 @@
 # troml_dev_status/engine.py
 from __future__ import annotations
 
+import logging
 from pathlib import Path
 from typing import Dict
 
@@ -34,6 +35,8 @@ from troml_dev_status.checks_completeness import (
     check_cmpl4_stub_files_ratio,
 )
 from troml_dev_status.models import CheckResult, EvidenceReport, Metrics
+
+logger = logging.getLogger(__name__)
 
 
 def run_analysis(repo_path: Path, project_name: str) -> EvidenceReport:

@@ -2,10 +2,13 @@
 
 from __future__ import annotations
 
+import logging
 from typing import Any, Dict, List, Tuple
 
 import httpx
 from packaging.version import InvalidVersion, Version
+
+logger = logging.getLogger(__name__)
 
 INTEGRITY_ACCEPT = "application/vnd.pypi.integrity.v1+json"
 
