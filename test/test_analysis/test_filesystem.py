@@ -299,4 +299,8 @@ def test_get_bureaucracy_files_matches_exact_patterns(tmp_path: Path) -> None:
     write(tmp_path, "Contributing.MD", "# nope")
     write(tmp_path, "CODE_OF_CONDUCT", "# nope")
     found = {p.name for p in get_bureaucracy_files(tmp_path)}
-    assert found == {"security.md", "contributing.md", "code_of_conduct.md"}
+    # code should be case insentive or it will only be linux compatible.
+    assert found == {
+        'Contributing.MD',
+             'SECURITY.md',
+        "security.md", "contributing.md", "code_of_conduct.md"}
