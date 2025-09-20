@@ -47,7 +47,7 @@ def _infer_project_name(console: Console, repo_path: Path) -> str | None:
 def cmd_analyze(args: argparse.Namespace, console: Console) -> int:
     repo_path: Path = args.repo_path.resolve()
     if not _require_git_repo(console, repo_path):
-        return 1
+        print("Some feature may not work as expected.")
 
     project_name = _infer_project_name(console, repo_path)
     if not project_name:
@@ -95,7 +95,7 @@ def cmd_validate(args: argparse.Namespace, console: Console) -> int:
     """Exit non-zero if pyproject's Development Status classifier differs from inferred."""
     repo_path: Path = args.repo_path.resolve()
     if not _require_git_repo(console, repo_path):
-        return 1
+        print("Some feature may not work as expected.")
 
     project_name = _infer_project_name(console, repo_path)
     if not project_name:
@@ -133,7 +133,7 @@ def cmd_update(args: argparse.Namespace, console: Console) -> int:
     """Update pyproject.toml to the inferred Development Status classifier (in-place)."""
     repo_path: Path = args.repo_path.resolve()
     if not _require_git_repo(console, repo_path):
-        return 1
+        print("Some feature may not work as expected.")
 
     project_name = _infer_project_name(console, repo_path)
     if not project_name:
