@@ -102,7 +102,7 @@ dev = [
 
 [project.urls]
 Repository = "https://github.com/matthewdeanmartin/troml_dev_status"
-# Documentation = "https://bitrab.readthedocs.io/en/latest/"
+Documentation = "https://troml-dev-status.readthedocs.io/en/latest/"
 Changelog = "https://github.com/matthewdeanmartin/troml_dev_status/blob/main/CHANGELOG.md"
 
 homepage = "https://github.com/matthewdeanmartin/troml_dev_status"
