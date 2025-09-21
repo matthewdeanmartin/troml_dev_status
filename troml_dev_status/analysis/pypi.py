@@ -39,19 +39,6 @@ def get_sorted_versions(pypi_data: dict) -> list[Version]:
     return sorted(versions, reverse=True)
 
 
-# def get_project_data(project_name: str) -> Dict[str, Any] | None:
-#     url = f"https://pypi.org/pypi/{project_name}/json"
-#     try:
-#         with httpx.Client(timeout=20) as client:
-#             r = client.get(url, follow_redirects=True)
-#             if r.status_code == 404:
-#                 return None
-#             r.raise_for_status()
-#             return r.json()
-#     except httpx.RequestError:
-#         return None
-
-
 def latest_release_files(pypi_json: Dict[str, Any]) -> Tuple[str, List[Dict[str, Any]]]:
     # `info.version` is the latest release according to PyPI’s JSON API
     version = pypi_json["info"]["version"]

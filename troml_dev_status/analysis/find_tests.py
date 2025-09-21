@@ -7,6 +7,8 @@ import unittest
 from pathlib import Path
 from typing import Iterable, List, Tuple
 
+from troml_dev_status.analysis.filesystem import find_src_dir
+
 logger = logging.getLogger(__name__)
 
 
@@ -20,7 +22,13 @@ def _count_unittest(repo_path: Path, start_dirs: Iterable[str]) -> int:
     Use unittest's discovery engine to count test cases.
     Counts individual test functions/methods (suite.countTestCases()).
     """
-    dirs = _existing_dirs(repo_path, start_dirs)
+    # handle case of people who put their tests in their module code.
+    more_dirs = []
+    module_dir = find_src_dir(repo_path)
+    if module_dir:
+        more_dirs.append(module_dir)
+    dirs = _existing_dirs(repo_path, start_dirs) + more_dirs
+
     if not dirs:
         return 0
 

@@ -11,8 +11,21 @@ Integrate by importing these into checks.py or wiring into engine.
 from __future__ import annotations
 
 import ast
+import configparser
+import os
 from pathlib import Path
-from typing import Iterable, List, Optional, Set, Tuple
+from typing import List, Optional, Set, Tuple
+
+from troml_dev_status.analysis.filesystem import find_src_dir, get_project_name
+from troml_dev_status.analysis.iter_the_files import _iter_files
+from troml_dev_status.models import CheckResult
+from troml_dev_status.utils.tomlkit_utils import load_pyproject_toml
+
+# importlib.metadata with backport
+try:
+    from importlib import metadata as _im
+except Exception:  # pragma: no cover
+    import importlib_metadata as _im  # type: ignore
 
 # Use tomllib for Python 3.11+, fallback to tomli for older versions
 try:
@@ -23,11 +36,8 @@ except ImportError:
 import re
 from datetime import datetime, timezone
 
-from troml_dev_status.models import CheckResult
-
 # ---- helpers ---------------------------------------------------------------
 
-_CODE_EXTS: Tuple[str, ...] = (".py",)
 
 _STD_LIB_MODULES: Set[str] = {
     # trimmed; good enough heuristic for the "pointless content" check
@@ -52,18 +62,6 @@ _STD_LIB_MODULES: Set[str] = {
     "datetime",
     "base64",
 }
-
-
-def _iter_files(root: Path, exts: Tuple[str, ...] = _CODE_EXTS) -> Iterable[Path]:
-    for p in root.rglob("*"):
-        if p.is_file() and p.suffix in exts:
-            # Skip typical vendor & virtual env dirs early
-            if any(
-                part in {".venv", "venv", "env", "site-packages", ".tox", ".git"}
-                for part in p.parts
-            ):
-                continue
-            yield p
 
 
 def _read_text(path: Path) -> Optional[str]:
@@ -100,7 +98,8 @@ def _module_ast(path: Path) -> Optional[ast.AST]:
         return None
 
 
-def _has_only_empty_init(root: Path) -> bool:
+def has_only_empty_init(repo_path: Path) -> bool:
+    root = find_src_dir(repo_path) or repo_path
     py_files = list(_iter_files(root))
     if not py_files:
         return False
@@ -115,7 +114,8 @@ def _has_only_empty_init(root: Path) -> bool:
     return True
 
 
-def _package_dirs_missing_init(root: Path) -> List[Path]:
+def package_dirs_missing_init(repo_path: Path) -> List[Path]:
+    root = find_src_dir(repo_path) or repo_path
     missing: List[Path] = []
     for d in {p.parent for p in _iter_files(root)}:
         if (d / "__init__.py").exists():
@@ -126,7 +126,7 @@ def _package_dirs_missing_init(root: Path) -> List[Path]:
     return missing
 
 
-def _is_stub_func(node: ast.FunctionDef | ast.AsyncFunctionDef) -> bool:
+def is_stub_func(node: ast.FunctionDef | ast.AsyncFunctionDef) -> bool:
     body = node.body
     if not body:
         return True
@@ -159,7 +159,7 @@ def _is_stub_func(node: ast.FunctionDef | ast.AsyncFunctionDef) -> bool:
     return False
 
 
-def _stub_density(root: Path) -> Tuple[int, int, float]:
+def stub_density(root: Path) -> Tuple[int, int, float]:
     stub = 0
     total = 0
     for path in _iter_files(root):
@@ -169,13 +169,13 @@ def _stub_density(root: Path) -> Tuple[int, int, float]:
         for node in ast.walk(mod):
             if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
                 total += 1
-                if _is_stub_func(node):
+                if is_stub_func(node):
                     stub += 1
     density = (stub / total) if total else 0.0
     return stub, total, density
 
 
-def _top_level_imports(root: Path) -> Set[str]:
+def top_level_imports(root: Path) -> Set[str]:
     seen: Set[str] = set()
     for path in _iter_files(root):
         mod = _module_ast(path)
@@ -239,7 +239,7 @@ def check_ds2_all_empty_files(repo_path: Path) -> CheckResult:
 
 def check_ds3_only_empty_init(repo_path: Path) -> CheckResult:
     """Fail if the codebase contains only __init__.py files and they are empty/trivial."""
-    if _has_only_empty_init(repo_path):
+    if has_only_empty_init(repo_path):
         return CheckResult(
             passed=False, evidence="Repository contains only empty __init__.py files."
         )
@@ -248,10 +248,11 @@ def check_ds3_only_empty_init(repo_path: Path) -> CheckResult:
 
 def check_ds4_missing_package_init(repo_path: Path) -> CheckResult:
     """Fail if directories containing .py files are missing __init__.py (import impossible)."""
-    missing = _package_dirs_missing_init(repo_path)
+
+    missing = package_dirs_missing_init(repo_path)
     if missing:
         sample = ", ".join(str(p) for p in missing[:5])
-        more = "" if len(missing) <= 5 else f" (+{len(missing)-5} more)"
+        more = "" if len(missing) <= 5 else f" (+{len(missing) - 5} more)"
         return CheckResult(
             passed=False, evidence=f"Package dirs without __init__.py: {sample}{more}."
         )
@@ -270,7 +271,7 @@ def check_ds5_unparsable_python(repo_path: Path) -> CheckResult:
             bad.append(str(p))
     if bad:
         sample = ", ".join(bad[:5])
-        more = "" if len(bad) <= 5 else f" (+{len(bad)-5} more)"
+        more = "" if len(bad) <= 5 else f" (+{len(bad) - 5} more)"
         return CheckResult(
             passed=False, evidence=f"Unparsable Python files: {sample}{more}."
         )
@@ -290,7 +291,7 @@ def check_ds6_py_extension_nonpython(repo_path: Path) -> CheckResult:
             bad.append(str(p))
     if bad:
         sample = ", ".join(bad[:5])
-        more = "" if len(bad) <= 5 else f" (+{len(bad)-5} more)"
+        more = "" if len(bad) <= 5 else f" (+{len(bad) - 5} more)"
         return CheckResult(
             passed=False,
             evidence=f".py files contain binary/null bytes: {sample}{more}.",
@@ -305,14 +306,14 @@ def check_ds7_stubware_density(
     repo_path: Path, max_stub_density: float = 0.80
 ) -> CheckResult:
     """Fail if ≥80% (default) of functions/methods are stubs (pass/NIE/return None/docstring-only)."""
-    stub, total, density = _stub_density(repo_path)
+    stub, total, density = stub_density(repo_path)
     if total == 0:
         return CheckResult(passed=False, evidence="No functions/methods found.")
     if density >= max_stub_density:
         pct = round(density * 100, 1)
         return CheckResult(
             passed=False,
-            evidence=f"Stubware density {pct}% (stubs {stub}/{total}) ≥ {int(max_stub_density*100)}%.",
+            evidence=f"Stubware density {pct}% (stubs {stub}/{total}) ≥ {int(max_stub_density * 100)}%.",
         )
     pct = round((1.0 - density) * 100, 1)
     return CheckResult(
@@ -405,24 +406,148 @@ def check_ds9_name_parking_signals(
 # ---- checks: bad/missing metadata ------------------------------------------
 
 
-def check_ds10_bad_metadata_pyproject(repo_path: Path) -> CheckResult:
-    """Fail if pyproject.toml missing core metadata [project].name/version/description."""
-    pyproject = repo_path / "pyproject.toml"
-    if not pyproject.exists():
-        return CheckResult(passed=False, evidence="Missing pyproject.toml.")
-    try:
-        data = tomllib.loads(pyproject.read_text(encoding="utf-8"))
-    except Exception as e:
-        return CheckResult(passed=False, evidence=f"pyproject.toml unreadable: {e}.")
+def _read_setup_cfg(repo_path: Path) -> Optional[configparser.ConfigParser]:
+    cfg_path = repo_path / "setup.cfg"
+    if not cfg_path.is_file():
+        return None
+    cp = configparser.ConfigParser()
+    cp.read(cfg_path)
+    return cp
 
-    project = data.get("project") or {}
-    missing = [k for k in ("name", "version", "description") if not project.get(k)]
+
+def _get_version_from_files(repo_path: Path) -> Optional[str]:
+    """Try version from pyproject.toml (PEP 621 / Poetry), then setup.cfg."""
+    doc = load_pyproject_toml(repo_path)
+    if doc:
+        # PEP 621
+        proj = doc.get("project") or {}
+        if isinstance(proj, dict):
+            v = proj.get("version")
+            if v:
+                return str(v)
+        # Poetry
+        poetry = (doc.get("tool") or {}).get("poetry") or {}
+        if isinstance(poetry, dict):
+            v = poetry.get("version")
+            if v:
+                return str(v)
+
+    cfg = _read_setup_cfg(repo_path)
+    if cfg and cfg.has_option("metadata", "version"):
+        return cfg.get("metadata", "version") or None
+    return None
+
+
+def _get_description_from_files(repo_path: Path) -> Optional[str]:
+    """Try description from pyproject.toml (PEP 621 / Poetry), then setup.cfg."""
+    doc = load_pyproject_toml(repo_path)
+    if doc:
+        # PEP 621
+        proj = doc.get("project") or {}
+        if isinstance(proj, dict):
+            d = proj.get("description")
+            if d:
+                return str(d)
+        # Poetry
+        poetry = (doc.get("tool") or {}).get("poetry") or {}
+        if isinstance(poetry, dict):
+            d = poetry.get("description")
+            if d:
+                return str(d)
+
+    cfg = _read_setup_cfg(repo_path)
+    if cfg and cfg.has_option("metadata", "description"):
+        return cfg.get("metadata", "description") or None
+    return None
+
+
+def _get_version_from_dist(dist_name: str) -> Optional[str]:
+    try:
+        return _im.version(dist_name)
+    except _im.PackageNotFoundError:
+        return None
+    except Exception:
+        return None
+
+
+def _get_description_from_dist(dist_name: str) -> Optional[str]:
+    try:
+        dist = _im.distribution(dist_name)
+    except _im.PackageNotFoundError:
+        return None
+    except Exception:
+        return None
+    # Wheel metadata: "Summary" field
+    summary = dist.metadata.get("Summary")
+    return str(summary) if summary else None
+
+
+def check_ds10_core_metadata_present(
+    repo_path: Path, *, venv_mode: bool = False
+) -> CheckResult:
+    """
+    Ensure core metadata (name, version, description) is present.
+
+    Sources (in priority order):
+      - If venv_mode=True: prefer installed distribution first (importlib.metadata),
+        then fall back to files.
+      - If venv_mode=False: prefer files first (pyproject.toml PEP 621 / Poetry, setup.cfg),
+        then fall back to installed distribution.
+
+    Fails if any of name/version/description are missing after exhausting sources.
+    """
+    if os.environ.get("TROML_DEV_STATUS_VENV_MODE"):
+        venv_mode = True
+    # Resolve name first (uses both files and installed dist according to venv_mode).
+    name: Optional[str] = get_project_name(repo_path, venv_mode=venv_mode)
+
+    # Resolve version & description according to venv_mode preference, with final fallback.
+    version: Optional[str] = None
+    description: Optional[str] = None
+
+    if venv_mode:
+        # Prefer installed dist first (if we have a name)
+        if name:
+            version = _get_version_from_dist(name) or None
+            description = _get_description_from_dist(name) or None
+        # Fall back to files
+        if not version:
+            version = _get_version_from_files(repo_path)
+        if not description:
+            description = _get_description_from_files(repo_path)
+        # Final fallback: if name exists but we still lack values, try dist again
+        if name and not version:
+            version = _get_version_from_dist(name)
+        if name and not description:
+            description = _get_description_from_dist(name)
+    else:
+        # Prefer files first
+        version = _get_version_from_files(repo_path)
+        description = _get_description_from_files(repo_path)
+        # Final fallback: installed dist (requires a name)
+        if name and not version:
+            version = _get_version_from_dist(name)
+        if name and not description:
+            description = _get_description_from_dist(name)
+
+    missing = []
+    if not name:
+        missing.append("name")
+    if not version:
+        missing.append("version")
+    if not description:
+        missing.append("description")
+
     if missing:
+        src_hint = "installed dist / files" if venv_mode else "files / installed dist"
         return CheckResult(
-            passed=False, evidence=f"[project] missing: {', '.join(missing)}."
+            passed=False,
+            evidence=f"Missing core metadata: {', '.join(missing)} (looked in {src_hint}).",
         )
+
     return CheckResult(
-        passed=True, evidence="pyproject.toml has name/version/description."
+        passed=True,
+        evidence="Core metadata present: name/version/description found.",
     )
 
 
@@ -445,7 +570,11 @@ def check_ds11_pointless_content(repo_path: Path) -> CheckResult:
         if mod is None:
             # unparsable handled by another check; treat as not-pointless here
             continue
-        defs = [n for n in mod.body if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef))]  # type: ignore[attr-defined]
+        defs = [
+            n
+            for n in mod.body  # type: ignore[attr-defined]
+            if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef))
+        ]  # type: ignore[attr-defined]
         if defs:
             any_defs = True
             continue
@@ -516,7 +645,7 @@ def check_ds12_declares_deps_but_never_imports(repo_path: Path) -> CheckResult:
         if name:
             req_names.add(name)
 
-    imported = {name.lower() for name in _top_level_imports(repo_path)}
+    imported = {name.lower() for name in top_level_imports(repo_path)}
 
     unused = sorted([r for r in req_names if r not in imported])
     if len(unused) == len(req_names):

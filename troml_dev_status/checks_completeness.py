@@ -3,44 +3,22 @@ from __future__ import annotations
 
 import ast
 import logging
-import os
 import re
 from pathlib import Path
 from typing import Iterable, Iterator
 
-import pathspec
-
 from troml_dev_status.analysis.filesystem import find_src_dir
+from troml_dev_status.analysis.iter_the_files import _iter_files, iter_files2
 from troml_dev_status.models import CheckResult
 
 logger = logging.getLogger(__name__)
 # ---- shared helpers ------------------------------------------------------------
 
-_SKIP_DIRS = {
-    ".git",
-    ".hg",
-    ".svn",
-    ".tox",
-    ".mypy_cache",
-    ".pytest_cache",
-    ".ruff_cache",
-    "__pycache__",
-    ".venv",
-    "venv",
-    "env",
-    "dist",
-    "build",
-    ".eggs",
-    ".idea",
-    ".vscode",
-    "site-packages",
-}
 
 _CODE_EXTS = {".py"}
 _DOC_EXTS = {".md", ".rst", ".txt", ""}  # "" -> files like LICENSE, NOTICE, etc.
 
 _TODO_RE = re.compile(r"\b(?:TODO|FIXME|BUG)\b", re.IGNORECASE)
-
 
 _VENV_NAME_RE = re.compile(r"^(?:\.?venv|\.?env)(?:[-._]?\w+)*$", re.IGNORECASE)
 
@@ -51,79 +29,6 @@ def _read_text(path: Path) -> str:
         return path.read_text(encoding="utf-8", errors="replace")
     except Exception:
         return ""
-
-
-_VENV_NAME_RE = re.compile(r"^(?:\.?venv|\.?env)(?:[-._]?\w+)*$", re.IGNORECASE)
-
-
-def _git_toplevel(start: Path) -> Path:
-    """Best-effort: return the git repo root; fall back to `start` if not found."""
-    cur = start.resolve()
-    for p in [cur] + list(cur.parents):
-        if (p / ".git").exists():
-            return p
-    return start
-
-
-def _load_gitignore_spec(repo_path: Path):
-    """Load only the top-level .gitignore (avoid nested rebase pitfalls)."""
-    try:
-        repo_root = _git_toplevel(repo_path)
-        gi = repo_root / ".gitignore"
-        if not gi.exists():
-            return None, repo_root
-        lines = gi.read_text(encoding="utf-8", errors="replace").splitlines()
-        spec = pathspec.PathSpec.from_lines("gitwildmatch", lines)
-        return spec, repo_root
-    except Exception:
-        return None, repo_path
-
-
-def _is_ignored(repo_root: Path, p: Path, spec) -> bool:
-    if spec is None:
-        return False
-    try:
-        rel = p.resolve().relative_to(repo_root.resolve()).as_posix()
-    except ValueError:
-        rel = p.as_posix()
-    return spec.match_file(rel)
-
-
-def os_walk_no_follow(start: Path) -> Iterator[tuple[str, list[str], list[str]]]:
-    for root, dirs, files in os.walk(start, topdown=True, followlinks=False):
-        yield root, dirs, files
-
-
-def _iter_files(
-    repo_path: Path,
-    include_exts: set[str],
-    respect_gitignore: bool = True,
-) -> Iterator[Path]:
-    """
-    Yield files in repo_path with ext in include_exts (or "" for no ext),
-    skipping common junk + venv-like dirs, and (optionally) honoring top-level .gitignore.
-    """
-    spec, repo_root = (
-        _load_gitignore_spec(repo_path) if respect_gitignore else (None, repo_path)
-    )
-
-    for root, dirs, files in os_walk_no_follow(repo_path):
-        root_path = Path(root)
-
-        # Hard prune by name and venv-like patterns (works even w/o .gitignore)
-        dirs[:] = [
-            d for d in dirs if d not in _SKIP_DIRS and not _VENV_NAME_RE.match(d)
-        ]
-
-        for name in files:
-            p = root_path / name
-
-            if respect_gitignore and _is_ignored(repo_root, p, spec):
-                continue
-
-            ext = p.suffix
-            if ext in include_exts or ("" in include_exts and ext == ""):
-                yield p
 
 
 def _count_nonempty_py_loc(py_files: Iterable[Path]) -> int:
@@ -149,8 +54,8 @@ def check_cmpl1_todo_density(repo_path: Path) -> CheckResult:
     Fail if > 5 markers per 1000 non-empty Python LOC.
     """
     repo_path = find_src_dir(repo_path) or repo_path
-    py_files = list(_iter_files(repo_path, _CODE_EXTS))
-    doc_files = list(_iter_files(repo_path, _DOC_EXTS))
+    py_files = list(iter_files2(repo_path, _CODE_EXTS))
+    doc_files = list(iter_files2(repo_path, _DOC_EXTS))
 
     loc = _count_nonempty_py_loc(py_files)
     if loc == 0:
@@ -292,7 +197,7 @@ def check_cmpl2_notimplemented_ratio(repo_path: Path) -> CheckResult:
     Pass if < 1% of functions/methods raise NotImplementedError.
     Excludes methods decorated with @abstractmethod and methods on ABC classes.
     """
-    py_files = list(_iter_files(repo_path, _CODE_EXTS))
+    py_files = list(_iter_files(repo_path, tuple(_CODE_EXTS)))
     total_funcs = 0
     notimpl_funcs = 0
 
@@ -341,7 +246,7 @@ def check_cmpl3_placeholder_pass_ratio(repo_path: Path) -> CheckResult:
     Pass if < 5% of functions/methods consist only of 'pass'.
     Class-level 'pass' is allowed and not counted (we only look at functions/methods).
     """
-    py_files = list(_iter_files(repo_path, _CODE_EXTS))
+    py_files = list(_iter_files(repo_path, tuple(_CODE_EXTS)))
     total_funcs = 0
     pass_only = 0
 
@@ -494,7 +399,7 @@ def check_cmpl4_stub_files_ratio(repo_path: Path) -> CheckResult:
     """
     Fail if > 10% of discovered .py files are “stub files” per _is_stub_file.
     """
-    py_files = list(_iter_files(repo_path, _CODE_EXTS))
+    py_files = list(_iter_files(repo_path, tuple(_CODE_EXTS)))
     if not py_files:
         return CheckResult(passed=False, evidence="No Python files discovered.")
 

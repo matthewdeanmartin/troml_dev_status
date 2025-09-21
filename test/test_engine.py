@@ -86,13 +86,20 @@ def test_planning_when_release_but_low_completeness():
 
 def test_pre_alpha_path():
     results = base_results()
-    results["R1"] = ck(True)
+    for z in ["Q4", "R3", "R1"]:
+        results[z] = ck(True)
     # EPS needs >= 4. Use any 4 from eps_set.
-    for k in ["Q1", "Q2", "Q3", "R3"]:
+    for k in [
+        "Q1",
+        "Q2",
+        "Q3",
+        "R3",
+        "Q4",
+    ]:
         results[k] = ck(True)
-    # Completeness must be < 10
+    # Completeness must be >5 and < 10
     # Turn on a couple but keep below 10
-    for k in ["Q1", "Q2"]:
+    for k in ["Q1", "Q2", "Cmpl1", "Cmpl2", "Cmpl3", "Cmpl4"]:
         results[k] = ck(True)
     for bad in {
         "Fail0",
@@ -110,7 +117,7 @@ def test_pre_alpha_path():
         "Fail12",
     }:
         results[bad] = ck(True)
-    status, _ = determine_status(results, None, Metrics())
+    status, _ = determine_status(results, None, Metrics(), explain=True)
     assert status == "Development Status :: 2 - Pre-Alpha"
 
 

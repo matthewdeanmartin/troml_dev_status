@@ -28,9 +28,9 @@ from troml_dev_status.analysis.find_tests import count_tests
 from troml_dev_status.analysis.git import get_latest_commit_date
 from troml_dev_status.analysis.pypi import latest_release_has_attestations
 from troml_dev_status.analysis.readme_eval import evaluate_readme
+from troml_dev_status.analysis.support_per_endoflife import fetch_latest_supported_minor
 from troml_dev_status.analysis.validate_changelog import ChangelogValidator
 from troml_dev_status.models import CheckResult
-from troml_dev_status.utils.support_per_endoflife import fetch_latest_supported_minor
 
 logger = logging.getLogger(__name__)
 

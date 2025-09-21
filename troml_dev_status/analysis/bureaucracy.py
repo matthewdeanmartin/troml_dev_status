@@ -5,9 +5,9 @@ import logging
 import re
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, Iterable, Iterator, List, Mapping, Pattern, Set, Tuple
+from typing import Dict, Iterable, List, Mapping, Pattern, Set, Tuple
 
-import pathspec
+from troml_dev_status.analysis.iter_the_files import iter_repo_files
 
 logger = logging.getLogger(__name__)
 # ---- categories we recognize -------------------------------------------------
@@ -283,63 +283,6 @@ def summarize_bureaucracy(
         repo_path, include_categories=categories, exclude_categories=exclude_categories
     )
     return {k: len(v) for k, v in mapping.items()}
-
-
-# --- utility: load .gitignore -----------------------------------------------
-
-
-def load_gitignore(repo_path: Path) -> pathspec.PathSpec | None:
-    gitignore = repo_path / ".gitignore"
-    if not gitignore.is_file():
-        return None
-    spec = pathspec.PathSpec.from_lines(
-        "gitwildmatch", gitignore.read_text().splitlines()
-    )
-    return spec
-
-
-# --- utility: walk with exclusions ------------------------------------------
-
-
-def iter_repo_files(repo_path: Path, follow_symlinks: bool = False) -> Iterator[Path]:
-    """
-    Yield all files in repo_path, excluding:
-      - .git, .venv, venv, node_modules, __pycache__, etc.
-      - Anything ignored by .gitignore (if present).
-    """
-    skip_dirs: Set[str] = {
-        ".git",
-        ".hg",
-        ".svn",
-        ".venv",
-        "venv",
-        "__pycache__",
-        "node_modules",
-        ".mypy_cache",
-    }
-
-    gitignore_spec = load_gitignore(repo_path)
-
-    for path in repo_path.rglob("*"):
-        # Cheap directory pruning
-        parts = set(path.parts)
-        if parts & skip_dirs:
-            continue
-
-        # Only consider files
-        try:
-            if not (path.is_file() or (follow_symlinks and path.is_symlink())):
-                continue
-        except OSError:
-            continue
-
-        # Respect .gitignore
-        if gitignore_spec:
-            rel = str(path.relative_to(repo_path))
-            if gitignore_spec.match_file(rel):
-                continue
-
-        yield path
 
 
 # ---- quick extension guide ---------------------------------------------------

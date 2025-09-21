@@ -5,24 +5,48 @@ Filesystem analysis utility to read and modify Python project metadata.
 This module provides functions to inspect and update project configuration files
 such as pyproject.toml (for both PEP 621 and Poetry) and setup.cfg. It also
 includes utilities for analyzing source code, test files, and CI configurations.
+
+NEW:
+- venv_mode flag on readers. When True, prefer importlib.metadata (or backport)
+  to fetch name, classifiers, and dependencies from the installed distribution.
+- Even when venv_mode=False, we now fall back to importlib.metadata if config
+  files are missing or unparseable.
 """
 from __future__ import annotations
 
 import ast
 import configparser
 import logging
+import os
+import re
 from pathlib import Path
-from typing import Any, Union
+from typing import Any, Iterable, Optional
 
 import tomlkit
 from tomlkit.items import Table
 
-# Use tomllib for Python 3.11+, fallback to tomli for older versions
-try:
-    import tomllib
-except ImportError:
-    import tomli as tomllib  # type: ignore[no-redef,import-not-found]
+from troml_dev_status.utils.tomlkit_utils import (
+    dump_pyproject_toml,
+    load_pyproject_toml,
+)
 
+try:
+    # Preferred: follows PEP 503
+    from packaging.utils import canonicalize_name as _canonicalize_name  # type: ignore
+except Exception:  # packaging not installed
+    _canonicalize_name = None  # type: ignore
+
+# # Use tomllib for Python 3.11+, fallback to tomli for older versions
+# try:
+#     import tomllib
+# except ImportError:
+#     pass  # type: ignore[no-redef,import-not-found]
+
+# importlib.metadata with backport support
+try:
+    from importlib import metadata as _im
+except Exception:  # pragma: no cover
+    import importlib_metadata as _im  # type: ignore
 
 logger = logging.getLogger(__name__)
 
@@ -32,38 +56,160 @@ VALID_ANALYSIS_MODES = ["library", "application"]
 DEFAULT_ANALYSIS_MODE = "library"
 
 
-# --- Private Helper Functions: File I/O ---
+# --- Importlib.metadata helpers ------------------------------------------------
 
 
-def _load_pyproject_toml(
-    repo_path: Path,
-) -> Union[dict[str, Any], "tomlkit.TOMLDocument"] | None:
-    """Load pyproject.toml using tomlkit if available, else tomllib."""
-    pyproject_path = repo_path / "pyproject.toml"
-    if not pyproject_path.is_file():
-        return None
-
-    content = pyproject_path.read_text(encoding="utf-8")
-    if tomlkit:
-        try:
-            return tomlkit.parse(content)
-        except Exception:  # nosec # noqa
-            return None
-
-    return tomllib.loads(content)
+def _pep503_normalize(name: str) -> str:
+    """PEP 503 normalization: lowercase and collapse runs of [-_.] to a single '-'."""
+    return re.sub(r"[-_.]+", "-", name).lower()
 
 
-def _dump_pyproject_toml(
-    repo_path: Path, doc: Union[dict[str, Any], "tomlkit.TOMLDocument"]
-) -> None:
-    """Dump document to pyproject.toml, requiring tomlkit to preserve styles."""
-    if not tomlkit or not isinstance(doc, tomlkit.TOMLDocument):
-        raise RuntimeError(
-            "tomlkit is required for safe in-place updates of pyproject.toml. "
-            "Please install it."
+def _canon(name: str) -> str:
+    """Canonicalize a distribution name using packaging if available; else PEP 503."""
+    if _canonicalize_name is not None:  # pragma: no cover - trivial branch
+        return _canonicalize_name(name)
+    return _pep503_normalize(name)
+
+
+def _unique(iterable: Iterable[str]) -> list[str]:
+    """Preserve order while removing duplicates (case-sensitive)."""
+    seen: set[str] = set()
+    out: list[str] = []
+    for s in iterable:
+        if s not in seen:
+            seen.add(s)
+            out.append(s)
+    return out
+
+
+def _candidate_dist_names(
+    repo_path: Path, pyproject_doc: dict[str, Any] | None
+) -> list[str]:
+    """
+    Build a small set of likely distribution names to look up via importlib.metadata.
+    Priority:
+      1) [project].name
+      2) [tool.poetry].name
+      3) folder name (hyphen/underscore variants)
+    Returns raw and normalized variants (PEP 503/canonical), de-duplicated.
+    """
+    cands: list[str] = []
+
+    # pyproject sources
+    if pyproject_doc:
+        proj_name = (pyproject_doc.get("project") or {}).get("name")
+        if proj_name:
+            cands.append(str(proj_name))
+
+        poetry_name = ((pyproject_doc.get("tool") or {}).get("poetry") or {}).get(
+            "name"
         )
-    pyproject_path = repo_path / "pyproject.toml"
-    pyproject_path.write_text(tomlkit.dumps(doc), encoding="utf-8")
+        if poetry_name:
+            cands.append(str(poetry_name))
+
+    # folder name & simple swaps
+    folder = repo_path.name
+    cands.append(folder)
+    cands.append(folder.replace("-", "_"))
+    cands.append(folder.replace("_", "-"))
+
+    # Build variants per candidate
+    variants: list[str] = []
+    for n in _unique(cands):
+        variants.extend(
+            [
+                n,  # as-is
+                n.lower(),  # lowercase
+                n.replace("-", "_"),
+                n.replace("_", "-"),
+                _pep503_normalize(n),
+                _canon(n),  # packaging canonical (same as PEP 503, but future-proof)
+            ]
+        )
+
+    return _unique(variants)
+
+
+# def _candidate_dist_names(repo_path: Path, pyproject_doc: dict[str, Any] | None) -> list[str]:
+#     """
+#     Build a small set of likely distribution names to look up via importlib.metadata.
+#     Priority:
+#       1) [project].name
+#       2) [tool.poetry].name
+#       3) folder name (hyphen and underscore variants)
+#     """
+#     cands: list[str] = []
+#     if pyproject_doc:
+#         name = pyproject_doc.get("project", {}).get("name")
+#         if name:
+#             cands.append(str(name))
+#         poetry_name = pyproject_doc.get("tool", {}).get("poetry", {}).get("name")
+#         if poetry_name and poetry_name not in cands:
+#             cands.append(str(poetry_name))
+#     folder = repo_path.name
+#     if folder not in cands:
+#         cands.append(folder)
+#     u = folder.replace("-", "_")
+#     h = folder.replace("_", "-")
+#     for n in (u, h):
+#         if n not in cands:
+#             cands.append(n)
+#     # Normalize names per PEP 503 (importlib.metadata uses normalized names internally)
+#     normed = list(dict.fromkeys(_im._meta._normalize_name(n) if hasattr(_im, "_meta") else n.lower().replace("-", "").replace("_", "") for n in cands))  # type: ignore[attr-defined]
+#     # Keep both raw and normalized to maximize hit chance
+#     return list(dict.fromkeys(cands + normed))
+
+
+def _find_distribution_by_candidates(
+    candidates: Iterable[str],
+) -> Optional[_im.Distribution]:
+    """
+    Return the first importlib.metadata Distribution whose name matches any candidate
+    (case-insensitive, normalized).
+    """
+    for cand in candidates:
+        try:
+            dist = _im.distribution(cand)
+            if dist:
+                return dist
+        except _im.PackageNotFoundError:
+            continue
+        except Exception:  # nosec
+            continue
+    # Last-ditch: try scanning all dists and match normalized names
+    try:
+        all_dists = list(_im.distributions())
+        normalized = {
+            cand.lower().replace("-", "").replace("_", "") for cand in candidates
+        }
+        for dist in all_dists:
+            nm = dist.metadata.get("Name", "") or ""
+            nm_norm = nm.lower().replace("-", "").replace("_", "")
+            if nm_norm in normalized:
+                return dist
+    except Exception:  # nosec
+        pass
+    return None
+
+
+def _get_metadata_list(dist: _im.Distribution, key: str) -> list[str]:
+    """
+    Collect all repeated metadata headers, e.g., Classifier / Requires-Dist.
+    """
+    # EmailMessage-like interface; get_all returns a list or None
+    vals = dist.metadata.get_all(key) if hasattr(dist.metadata, "get_all") else None
+    if not vals:
+        # Some implementations expose a single string joined by newlines
+        raw = dist.metadata.get(key)
+        if not raw:
+            return []
+        if isinstance(raw, str):
+            return [line.strip() for line in raw.splitlines() if line.strip()]
+        return []
+    return [v.strip() for v in vals if isinstance(v, str) and v.strip()]
+
+
+# --- setup.cfg I/O -------------------------------------------------------------
 
 
 def _load_setup_cfg(repo_path: Path) -> configparser.ConfigParser | None:
@@ -83,7 +229,7 @@ def _dump_setup_cfg(repo_path: Path, config: configparser.ConfigParser) -> None:
         config.write(f)
 
 
-# --- Private Helper Functions: Classifier Manipulation ---
+# --- Private Helper Functions: Classifier Manipulation ------------------------
 
 
 def _get_classifiers_from_toml_table(table: dict[str, Any] | None) -> list[str]:
@@ -120,13 +266,29 @@ def _update_classifiers_in_toml_table(table: Table, new_classifier: str) -> None
         table["classifiers"] = [new_classifier] + to_keep
 
 
-# --- Public API ---
+# --- Public API ----------------------------------------------------------------
 
 
-def get_dev_status_classifier(repo_path: Path) -> str | None:
-    """Return the first Development Status classifier from pyproject.toml or setup.cfg."""
+def get_dev_status_classifier(
+    repo_path: Path, *, venv_mode: bool = False
+) -> str | None:
+    """
+    Return the first Development Status classifier from config files, or from the
+    installed distribution when venv_mode=True, or as a final fallback.
+    """
+    if os.environ.get("TROML_DEV_STATUS_VENV_MODE"):
+        venv_mode = True
+    doc = load_pyproject_toml(repo_path)
+
+    # venv_mode prefers installed metadata first
+    if venv_mode:
+        dist = _find_distribution_by_candidates(_candidate_dist_names(repo_path, doc))
+        if dist:
+            for c in _get_metadata_list(dist, "Classifier"):
+                if c.startswith(DEV_STATUS_PREFIX):
+                    return c
+
     # 1. Try pyproject.toml
-    doc = _load_pyproject_toml(repo_path)
     if doc:
         # PEP 621 [project] table
         project_table = doc.get("project")
@@ -150,16 +312,29 @@ def get_dev_status_classifier(repo_path: Path) -> str | None:
             if c.startswith(DEV_STATUS_PREFIX):
                 return c
 
+    # Final fallback: try installed distribution metadata
+    dist = _find_distribution_by_candidates(_candidate_dist_names(repo_path, doc))
+    if dist:
+        for c in _get_metadata_list(dist, "Classifier"):
+            if c.startswith(DEV_STATUS_PREFIX):
+                return c
+
     return None
 
 
-def set_dev_status_classifier(repo_path: Path, new_classifier: str) -> bool:
-    """Set/replace the Development Status classifier, prioritizing pyproject.toml."""
+def set_dev_status_classifier(
+    repo_path: Path, new_classifier: str, *, venv_mode: bool = False
+) -> bool:
+    """
+    Set/replace the Development Status classifier, prioritizing pyproject.toml.
+    NOTE: We only *write* to files. venv_mode is accepted for API symmetry but
+    does not write to installed metadata (not possible); it still writes files.
+    """
     pyproject_path = repo_path / "pyproject.toml"
     setup_cfg_path = repo_path / "setup.cfg"
 
     if pyproject_path.is_file():
-        doc = _load_pyproject_toml(repo_path)
+        doc = load_pyproject_toml(repo_path)
         if not doc:
             raise IOError(f"Could not parse {pyproject_path}")
         if not tomlkit:
@@ -174,7 +349,7 @@ def set_dev_status_classifier(repo_path: Path, new_classifier: str) -> bool:
             table = doc["project"]  # type: ignore
 
         _update_classifiers_in_toml_table(table, new_classifier)  # type: ignore[arg-type]
-        _dump_pyproject_toml(repo_path, doc)
+        dump_pyproject_toml(repo_path, doc)
         return True
 
     if setup_cfg_path.is_file():
@@ -196,43 +371,72 @@ def set_dev_status_classifier(repo_path: Path, new_classifier: str) -> bool:
         _dump_setup_cfg(repo_path, config)
         return True
 
+    # If there are no files to write, we cannot persist it.
     raise FileNotFoundError("No pyproject.toml or setup.cfg found in the repository.")
 
 
-def get_project_name(repo_path: Path) -> str | None:
-    """Parses pyproject.toml or setup.cfg to find the project name."""
+def get_project_name(repo_path: Path, *, venv_mode: bool = False) -> str | None:
+    """Get project name from pyproject.toml/setup.cfg, or from installed dist."""
+    doc = load_pyproject_toml(repo_path)
+
+    if venv_mode:
+        dist = _find_distribution_by_candidates(_candidate_dist_names(repo_path, doc))
+        if dist:
+            name = dist.metadata.get("Name")
+            if name:
+                return str(name)
+
     # 1. Try pyproject.toml (PEP 621 and Poetry)
-    doc = _load_pyproject_toml(repo_path)
     if doc:
         name = doc.get("project", {}).get("name")  # type: ignore
         if name:
-            return name
+            return str(name)
         name = doc.get("tool", {}).get("poetry", {}).get("name")  # type: ignore
         if name:
-            return name
+            return str(name)
 
     # 2. Try setup.cfg
     config = _load_setup_cfg(repo_path)
     if config and config.has_option("metadata", "name"):
         return config.get("metadata", "name")
 
+    # Final fallback
+    dist = _find_distribution_by_candidates(_candidate_dist_names(repo_path, doc))
+    if dist:
+        nm = dist.metadata.get("Name")
+        return str(nm) if nm else None
+
     return None
 
 
-def get_project_dependencies(repo_path: Path) -> list[str] | None:
-    """Parses config files to get the list of runtime dependencies."""
+def get_project_dependencies(
+    repo_path: Path, *, venv_mode: bool = False
+) -> list[str] | None:
+    """
+    Get runtime dependencies from pyproject.toml/setup.cfg, or from installed dist
+    (Requires-Dist) when venv_mode=True or as a final fallback.
+    """
+    doc = load_pyproject_toml(repo_path)
+
+    if venv_mode:
+        dist = _find_distribution_by_candidates(_candidate_dist_names(repo_path, doc))
+        if dist:
+            reqs = _get_metadata_list(dist, "Requires-Dist")
+            return reqs if reqs else []
+
     # 1. Try pyproject.toml
-    doc = _load_pyproject_toml(repo_path)
+    doc = load_pyproject_toml(repo_path)
     if doc:
         # PEP 621
         if "project" in doc and "dependencies" in doc["project"]:  # type: ignore
-            return list(doc["project"]["dependencies"])  # type: ignore
+            deps = list(doc["project"]["dependencies"])  # type: ignore
+            return deps
 
         # Poetry
         poetry_deps = doc.get("tool", {}).get("poetry", {}).get("dependencies")  # type: ignore
         if poetry_deps:
             # Poetry deps are a table. Exclude python version constraint.
-            return [dep for dep in poetry_deps if dep.lower() != "python"]
+            return [dep for dep in poetry_deps if str(dep).lower() != "python"]
 
     # 2. Try setup.cfg
     config = _load_setup_cfg(repo_path)
@@ -240,14 +444,24 @@ def get_project_dependencies(repo_path: Path) -> list[str] | None:
         raw_deps = config.get("options", "install_requires", fallback="")
         return [dep.strip() for dep in raw_deps.split("\n") if dep.strip()]
 
+    # Final fallback
+    dist = _find_distribution_by_candidates(_candidate_dist_names(repo_path, doc))
+    if dist:
+        reqs = _get_metadata_list(dist, "Requires-Dist")
+        return reqs if reqs else []
+
     return None
 
 
-def get_analysis_mode(repo_path: Path) -> str:
+def get_analysis_mode(repo_path: Path, *, venv_mode: bool = False) -> str:
     """
     Parse pyproject.toml to find the analysis mode from [tool.troml-dev-status].
+    There is no equivalent for this in installed metadata; if files are missing,
+    fall back to DEFAULT_ANALYSIS_MODE.
     """
-    doc = _load_pyproject_toml(repo_path)
+    if os.environ.get("TROML_DEV_STATUS_VENV_MODE"):
+        venv_mode = True
+    doc = load_pyproject_toml(repo_path)
     if not doc:
         return DEFAULT_ANALYSIS_MODE
 
@@ -257,16 +471,18 @@ def get_analysis_mode(repo_path: Path) -> str:
     return mode if mode in VALID_ANALYSIS_MODES else DEFAULT_ANALYSIS_MODE
 
 
-# --- Filesystem Analysis ---
+# --- Filesystem Analysis -------------------------------------------------------
 
 
-def find_src_dir(repo_path: Path) -> Path | None:
+def find_src_dir(repo_path: Path, *, venv_mode: bool = False) -> Path | None:
     """Finds the primary source directory (e.g., 'src/' or the package dir)."""
+    if os.environ.get("TROML_DEV_STATUS_VENV_MODE"):
+        venv_mode = True
     src_path = repo_path / "src"
     if src_path.is_dir():
         return src_path
 
-    name = get_project_name(repo_path)
+    name = get_project_name(repo_path, venv_mode=venv_mode)
     if name:
         # Handle both hyphenated and underscored package names
         package_path_hyphen = repo_path / name
