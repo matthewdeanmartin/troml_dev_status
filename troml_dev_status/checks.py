@@ -10,7 +10,6 @@ import logging
 import re
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from typing import Tuple
 
 from packaging.requirements import InvalidRequirement, Requirement
 from packaging.specifiers import SpecifierSet
@@ -34,6 +33,8 @@ from troml_dev_status.models import CheckResult
 from troml_dev_status.utils.support_per_endoflife import fetch_latest_supported_minor
 
 logger = logging.getLogger(__name__)
+
+
 # --- Check Functions ---
 
 
@@ -400,20 +401,6 @@ def check_c3_minimal_pin_sanity(repo_path: Path, mode: str) -> CheckResult:
         passed=False,
         evidence=f"Found {len(failed_deps)} not strictly pinned somehow: {', '.join(failed_deps)}.",
     )
-
-
-# --- Helper Functions ---
-
-
-def _get_current_supported_python_minor() -> Tuple[int, int]:
-    """
-    Placeholder function as requested by the user.
-    Returns the (major, minor) version of Python that is "current-1".
-    For example, if 3.14 is current, this returns (3, 13).
-    """
-    # This would be updated based on the current Python release cycle.
-    # As of late 2025, assuming 3.14 is current, so 3.13 is the target for "current-1".
-    return 3, 13
 
 
 # --- Check Implementations ---

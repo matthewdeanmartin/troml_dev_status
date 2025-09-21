@@ -1,6 +1,5 @@
 # TODO
 
 - Config file support for application vs library
-- Implemented all the unimplemented bits
-- Stress test against real world packages
-- No setup.cfg support but mentioned in PEP
+- Stress test against real world packages - started
+- Case sensitivity bug in finding standard files

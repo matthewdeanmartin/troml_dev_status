@@ -16,4 +16,4 @@ __keywords__ = ["development status", "trove classifiers", "python packaging"]
 __description__ = "Objectively infer PyPI Development Status classifiers from code and release artifacts."
 __readme__ = "README.md"
 __requires_python__ = ">=3.9"
-__status__ = "4 - Beta"
+__status__ = "5 - Production/Stable"

@@ -12,6 +12,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed for any bug fixes.
 - Security in case of vulnerabilities.
 
+## [0.4.0] - 2025-09-20
+
+### Added
+
+- Checks for near total incompleteness - app is empty or incapable of running.
+
+### Changed
+
+- Logic for evaluation makes it possible to get production status.
+- Unknown status shouldn't occur at all or at least not often.
+
 ## [0.3.1] - 2025-09-20
 
 ### Added

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 from datetime import datetime
-from typing import Dict, Literal, Optional
+from typing import Dict, Optional
 
 from pydantic import BaseModel, Field
 
@@ -24,8 +24,8 @@ class Metrics(BaseModel):
     eps_score: Optional[int] = None
     eps_total: Optional[int] = None
     public_symbols_latest: Optional[int] = None
-    public_symbols_previous: Optional[int] = None
-    removed_symbols_percent: Optional[float] = None
+    # public_symbols_previous: Optional[int] = None
+    # removed_symbols_percent: Optional[float] = None
     tests_count: Optional[int] = None
     src_modules_count: Optional[int] = None
     type_annotation_coverage: Optional[float] = None
@@ -41,5 +41,3 @@ class EvidenceReport(BaseModel):
     evaluated_at: datetime = Field(default_factory=datetime.utcnow)
     checks: Dict[str, CheckResult]
     metrics: Metrics
-    # For future use, not fully implemented in this sketch
-    overrides: Dict[Literal["inactive"], bool] = {"inactive": False}

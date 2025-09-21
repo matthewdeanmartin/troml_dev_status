@@ -46,6 +46,20 @@ CHECK_DESCRIPTIONS = {
     "Cmpl2": "NotImplemented usage",
     "Cmpl3": "Placeholder `pass`",
     "Cmpl4": "Stub files",
+    # Fail
+    "Fail0": "Zero file count",
+    "Fail1": "Tiny code base",
+    "Fail2": "All emty files",
+    "Fail3": "Only Empty init",
+    "Fail4": "No Package init",
+    "Fail5": "Python fails to parse",
+    "Fail6": ".py isn't python",
+    "Fail7": "High stub density",
+    "Fail8": "Not importable",
+    "Fail9": "Possible parked name",
+    "Fail10": "Bad metadata",
+    "Fail11": "Pointless content",
+    "Fail12": "Dependencies not imported",
 }
 
 # ---------------- existing JSON + human table ----------------
