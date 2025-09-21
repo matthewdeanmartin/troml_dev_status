@@ -1,6 +1,6 @@
 [project]
 name = "troml-dev-status"
-version = "0.3.1"
+version = "0.4.0"
 keywords = ["development status","trove classifiers","python packaging"]
 description = "Objectively infer PyPI Development Status classifiers from code and release artifacts."
 readme = "README.md"
