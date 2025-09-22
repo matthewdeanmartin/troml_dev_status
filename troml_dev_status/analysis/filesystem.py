@@ -36,12 +36,6 @@ try:
 except Exception:  # packaging not installed
     _canonicalize_name = None  # type: ignore
 
-# # Use tomllib for Python 3.11+, fallback to tomli for older versions
-# try:
-#     import tomllib
-# except ImportError:
-#     pass  # type: ignore[no-redef,import-not-found]
-
 # importlib.metadata with backport support
 try:
     from importlib import metadata as _im
@@ -460,7 +454,7 @@ def get_analysis_mode(repo_path: Path, *, venv_mode: bool = False) -> str:
     fall back to DEFAULT_ANALYSIS_MODE.
     """
     if os.environ.get("TROML_DEV_STATUS_VENV_MODE"):
-        venv_mode = True
+        pass
     doc = load_pyproject_toml(repo_path)
     if not doc:
         return DEFAULT_ANALYSIS_MODE

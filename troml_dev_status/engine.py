@@ -310,19 +310,19 @@ def determine_status(
 
     # Completeness signals “done-ness”
     completeness_src = {
-        "C1",
-        "C3",
-        "C4",
-        "Cmpl1",
-        "Cmpl2",
-        "Cmpl3",
-        "Cmpl4",
-        "Q1",
-        "Q2",
-        "Q3",
-        "Q4",
-        "Q6",
-        "Q7",
+        "C1",  # security.md
+        "C3",  # pinned dependencies
+        "C4",  # lock files
+        "Cmpl1",  # TODO
+        "Cmpl2",  # not impl
+        "Cmpl3",  # pass
+        "Cmpl4",  # stub files
+        "Q1",  # ci
+        "Q2",  # multipython
+        "Q3",  # test count
+        "Q4",  # annotations
+        "Q6",  # docs
+        "Q7",  # change log
         # "Q8", intentionally excluded per your comment
         # "R1", can be done without distribution
         "R5",

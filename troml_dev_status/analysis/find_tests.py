@@ -53,7 +53,7 @@ def _count_pytest(repo_path: Path, start_dirs: Iterable[str]) -> int:
     """
     dirs = _existing_dirs(repo_path, start_dirs)
     if not dirs:
-        print("nodirs")
+        logger.debug("No directories found specifically for tests")
         return 0
 
     try:

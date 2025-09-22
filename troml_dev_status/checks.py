@@ -15,7 +15,6 @@ from packaging.requirements import InvalidRequirement, Requirement
 from packaging.specifiers import SpecifierSet
 from packaging.version import InvalidVersion, Version
 
-from troml_dev_status.analysis import filesystem
 from troml_dev_status.analysis.filesystem import (
     analyze_type_hint_coverage,
     count_source_modules,
@@ -31,6 +30,12 @@ from troml_dev_status.analysis.readme_eval import evaluate_readme
 from troml_dev_status.analysis.support_per_endoflife import fetch_latest_supported_minor
 from troml_dev_status.analysis.validate_changelog import ChangelogValidator
 from troml_dev_status.models import CheckResult
+
+# Use tomllib for Python 3.11+, fallback to tomli for older versions
+try:
+    import tomllib
+except ImportError:
+    import tomli as tomllib  # type: ignore[no-redef,import-not-found]
 
 logger = logging.getLogger(__name__)
 
@@ -451,10 +456,10 @@ def check_r5_python_version_declaration(
     if toml_path.exists():
         try:
             with toml_path.open("rb") as f:
-                data = filesystem.tomllib.load(f)
+                data = tomllib.load(f)
             requires_python_str = data.get("project", {}).get("requires-python")
             has_requires_python = bool(requires_python_str)
-        except filesystem.tomllib.TOMLDecodeError:
+        except tomllib.TOMLDecodeError:
             requires_python_str = "[could not parse toml]"
 
     # 2. Check PyPI for a trove classifier
