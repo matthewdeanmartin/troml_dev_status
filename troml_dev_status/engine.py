@@ -498,5 +498,50 @@ def determine_status(
             "Not enough complete to rate above Planning.",
         )
 
+        # --- New Top-Down Classification Logic ---
+
+        # 1. Check for Mature (most strict)
+    is_production = eps.ratio >= eps_prod_thr and comp.ratio >= comp_prod_min
+    if is_production:
+        is_mature = (lts.total > 0 and lts.score == lts.total) and (
+            badness.score == badness.total
+        )
+        if is_mature:
+            return "Development Status :: 6 - Mature", detailed_reason(
+                f"EPS={eps.score}/{eps.total}; Completeness={comp.score}/{comp.total}; LTS={lts.score}/{lts.total}"
+            )
+
+        # 2. Check for Production/Stable (if not Mature)
+        return "Development Status :: 5 - Production/Stable", detailed_reason(
+            f"EPS={eps.score}/{eps.total}; Completeness={comp.score}/{comp.total}"
+        )
+
+    # 3. Check for Beta
+    # This condition no longer needs to check an upper bound for completeness.
+    is_beta = badness.ratio >= 1.0 and eps.ratio >= eps_beta_thr
+    if is_beta:
+        return "Development Status :: 4 - Beta", detailed_reason(
+            f"EPS={eps.score}/{eps.total}; Completeness={comp.score}/{comp.total}"
+        )
+
+    # 4. Check for Alpha
+    is_alpha = eps.ratio >= eps_alpha_thr and badness.ratio >= bad_alpha_thr
+    if is_alpha:
+        return "Development Status :: 3 - Alpha", detailed_reason(
+            f"EPS={eps.score}/{eps.total}; Completeness={comp.score}/{comp.total}"
+        )
+
+    # 5. Check for Pre-Alpha
+    is_pre_alpha = eps.ratio >= eps_prealpha_thr and badness.ratio >= bad_prealpha_thr
+    if is_pre_alpha:
+        return "Development Status :: 2 - Pre-Alpha", detailed_reason(
+            f"EPS={eps.score}/{eps.total}; Completeness={comp.score}/{comp.total}"
+        )
+
+    # 6. Else, it must be Planning
+    # All other cases fall through to the lowest valid status.
+    return "Development Status :: 1 - Planning", detailed_reason(
+        "Project scores do not meet the criteria for Pre-Alpha or higher."
+    )
     logger.debug("Fall-through -> Unknown")
     return "Unknown", "Could not map to a development status based on checks."

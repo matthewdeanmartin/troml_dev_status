@@ -9,7 +9,10 @@
 ## Design Flaw
 
 - Readme score driven by a long, but narrow list of section headers. Should just count sections as signal of structured document
-- 
+
+## Docs
+
+- Give a link to a page explaining how to fix each issue.
 
 ## BUG
 

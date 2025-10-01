@@ -12,11 +12,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed for any bug fixes.
 - Security in case of vulnerabilities.
 
-## [0.4.1] - 9999-12-31
+## [0.4.2] - 2025-10-01
 
 ### Fixed
 
-- Some checks iterate across .gitignored files
+- Better fallback when a status would be unknown.
+
+## [0.4.2] - 2025-09-21
+
+### Fixed
+
+- Some checks iterated across .gitignored files
 - Some new checks iterated root and not module folders
 
 ## [0.4.0] - 2025-09-20
