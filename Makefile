@@ -83,7 +83,7 @@ bandit: .build_history/bandit
 # for when using -j (jobs, run in parallel)
 .NOTPARALLEL: .build_history/isort .build_history/black
 
-check: mypy test pylint bandit pre-commit update_dev_status
+check: mypy test pylint bandit pre-commit update_dev_status dog_food
 
 #.PHONY: publish_test
 #publish_test:
@@ -146,3 +146,11 @@ core_all_tests:
 
 update_dev_status:
 	python -m troml_dev_status update .
+
+dog_food:
+	troml-dev-status validate .
+	metametameta sync-check
+	# troml-dev-status --totalhelp
+	# bitrab
+	# pycodetags <command?>
+	# cli-tool-audit

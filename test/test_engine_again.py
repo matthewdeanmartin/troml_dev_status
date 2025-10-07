@@ -66,11 +66,12 @@ LTS_SRC = {
     "M1",
 }
 
-ALL_CHECK_IDS = BADNESS_SRC | EPS_SRC | COMPLETENESS_SRC | LTS_SRC | {"R1"}
 
 
 def create_mock_results(passed_ids: set[str]) -> dict[str, CheckResult]:
     """Helper to generate a results dictionary for determine_status."""
+    ALL_CHECK_IDS = BADNESS_SRC | EPS_SRC | COMPLETENESS_SRC | LTS_SRC | {"R1"}
+
     results = {}
     for check_id in ALL_CHECK_IDS:
         # Create a result for every possible check to avoid key errors.
@@ -89,6 +90,8 @@ def test_hard_gate_planning_if_not_released():
     results = create_mock_results(passed_ids=set())
     classifier, _ = determine_status(results, None, Metrics())
     assert classifier == "Development Status :: 1 - Planning"
+
+    ALL_CHECK_IDS = BADNESS_SRC | EPS_SRC | COMPLETENESS_SRC | LTS_SRC | {"R1"}
 
     # All checks passed EXCEPT R1
     passed_but_no_r1 = ALL_CHECK_IDS - {"R1"}
@@ -169,13 +172,13 @@ def test_gate_planning_on_low_badness_score():
             {"R1"}
             | set(list(EPS_SRC)[:11])
             | set(list(COMPLETENESS_SRC)[:12])
-            | (BADNESS_SRC - {"Fail1"}),
+            | (set(BADNESS_SRC) - {"Fail1"}),
             "Development Status :: 3 - Alpha",  # Drops to Alpha
         ),
         (
             "Fails Beta on high Completeness",
             # Completeness is too high, pushing it out of Beta and into Production/Stable
-            {"R1"} | set(list(EPS_SRC)[:15]) | COMPLETENESS_SRC | BADNESS_SRC,
+            {"R1"} | set(list(EPS_SRC)[:15]) | set(COMPLETENESS_SRC) | set(BADNESS_SRC),
             "Development Status :: 5 - Production/Stable",
         ),
         # --- Production/Stable Scenarios ---
@@ -184,14 +187,14 @@ def test_gate_planning_on_low_badness_score():
             # EPS miss 1 of 16 (pass 15), Comp near-perfect (pass all), Badness can have fails
             {"R1"}
             | set(list(EPS_SRC)[:15])
-            | COMPLETENESS_SRC
-            | (BADNESS_SRC - {"Fail1"}),
+            | set(COMPLETENESS_SRC)
+            | (set(BADNESS_SRC) - {"Fail1"}),
             "Development Status :: 5 - Production/Stable",
         ),
         (
             "Fails Production on EPS",
             # EPS miss 2 of 16 (pass 14), just below threshold
-            {"R1"} | set(list(EPS_SRC)[:14]) | COMPLETENESS_SRC | BADNESS_SRC,
+            {"R1"} | set(list(EPS_SRC)[:14]) | set(COMPLETENESS_SRC) | set(BADNESS_SRC),
             # "Development Status :: 4 - Beta", # High scores but not enough EPS for Prod -> Beta
             # Is this correct?
             "Development Status :: 5 - Production/Stable",
@@ -200,19 +203,19 @@ def test_gate_planning_on_low_badness_score():
         (
             "Meets Mature",
             # All EPS, Completeness, Badness, and LTS checks must pass.
-            {"R1"} | EPS_SRC | COMPLETENESS_SRC | BADNESS_SRC | LTS_SRC,
+            {"R1"} | set(EPS_SRC) | set(COMPLETENESS_SRC) | set(BADNESS_SRC) | set(LTS_SRC),
             "Development Status :: 6 - Mature",
         ),
         (
             "Fails Mature on LTS",
             # Perfect score everywhere but one LTS check fails
-            {"R1"} | EPS_SRC | COMPLETENESS_SRC | BADNESS_SRC | (LTS_SRC - {"D1"}),
+            {"R1"} | set(EPS_SRC) | set(COMPLETENESS_SRC) | set(BADNESS_SRC) | (set(LTS_SRC) - {"D1"}),
             "Development Status :: 5 - Production/Stable",  # Drops to Production
         ),
         (
             "Fails Mature on Badness",
             # Perfect score everywhere but one Badness check fails
-            {"R1"} | EPS_SRC | COMPLETENESS_SRC | (BADNESS_SRC - {"Fail1"}) | LTS_SRC,
+            {"R1"} | set(EPS_SRC) | set(COMPLETENESS_SRC) | (set(BADNESS_SRC) - {"Fail1"}) | set(LTS_SRC),
             "Development Status :: 5 - Production/Stable",  # Drops to Production
         ),
     ],
@@ -237,6 +240,8 @@ def test_venv_mode_affects_totals():
     # Fail Q1 (CI config), which is part of EPS and Completeness.
     # In normal mode, this makes EPS and Completeness ratios imperfect.
     # In venv_mode, Q1 is skipped, making those ratios perfect for this test case.
+    ALL_CHECK_IDS = BADNESS_SRC | EPS_SRC | COMPLETENESS_SRC | LTS_SRC | {"R1"}
+
     passed_checks = ALL_CHECK_IDS - {"Q1"}
     results = create_mock_results(passed_ids=passed_checks)
 

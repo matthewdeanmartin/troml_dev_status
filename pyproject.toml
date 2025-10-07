@@ -1,6 +1,6 @@
 [project]
 name = "troml-dev-status"
-version = "0.4.2"
+version = "0.4.3"
 keywords = ["development status","trove classifiers","python packaging"]
 description = "Objectively infer PyPI Development Status classifiers from code and release artifacts."
 readme = "README.md"
@@ -37,6 +37,7 @@ classifiers = [
 dependencies = [
     "textstat>= 0.7.10",
     "rich>=14.1.0",
+    "pydantic>=2.12.0; python_version >= '3.14'",
     "pydantic>=2.11.9",
     "httpx[http2]>=0.28.1",
     "pyyaml>=6.0.2",

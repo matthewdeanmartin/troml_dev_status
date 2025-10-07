@@ -77,7 +77,7 @@ def _unique(iterable: Iterable[str]) -> list[str]:
 
 
 def _candidate_dist_names(
-    repo_path: Path, pyproject_doc: dict[str, Any] | None
+        repo_path: Path, pyproject_doc: dict[str, Any] | None
 ) -> list[str]:
     """
     Build a small set of likely distribution names to look up via importlib.metadata.
@@ -155,7 +155,7 @@ def _candidate_dist_names(
 
 
 def _find_distribution_by_candidates(
-    candidates: Iterable[str],
+        candidates: Iterable[str],
 ) -> Optional[_im.Distribution]:
     """
     Return the first importlib.metadata Distribution whose name matches any candidate
@@ -264,7 +264,7 @@ def _update_classifiers_in_toml_table(table: Table, new_classifier: str) -> None
 
 
 def get_dev_status_classifier(
-    repo_path: Path, *, venv_mode: bool = False
+        repo_path: Path, *, venv_mode: bool = False
 ) -> str | None:
     """
     Return the first Development Status classifier from config files, or from the
@@ -317,7 +317,7 @@ def get_dev_status_classifier(
 
 
 def set_dev_status_classifier(
-    repo_path: Path, new_classifier: str, *, venv_mode: bool = False
+        repo_path: Path, new_classifier: str, *, venv_mode: bool = False
 ) -> bool:
     """
     Set/replace the Development Status classifier, prioritizing pyproject.toml.
@@ -404,7 +404,7 @@ def get_project_name(repo_path: Path, *, venv_mode: bool = False) -> str | None:
 
 
 def get_project_dependencies(
-    repo_path: Path, *, venv_mode: bool = False
+        repo_path: Path, *, venv_mode: bool = False
 ) -> list[str] | None:
     """
     Get runtime dependencies from pyproject.toml/setup.cfg, or from installed dist
@@ -514,6 +514,7 @@ def get_ci_config_files(repo_path: Path) -> list[Path]:
         ".github/workflows/*.yml",
         ".github/workflows/*.yaml",
         ".gitlab-ci.yml",
+        "tox.ini"
     ]
     files: list[Path] = []
     for pattern in patterns:
@@ -524,7 +525,10 @@ def get_ci_config_files(repo_path: Path) -> list[Path]:
 def has_multi_python_in_ci(ci_files: list[Path]) -> bool:
     """Checks if CI files mention at least two distinct Python versions."""
     py_versions = set()
-    versions_to_check = ["3.8", "3.9", "3.10", "3.11", "3.12", "3.13"]
+    versions_to_check = [
+        "3.8", "3.9", "3.10", "3.11", "3.12", "3.13", "3.14",
+        "py39", "py310", "py311", "py312", "py313", "py314",
+    ]
 
     for file_path in ci_files:
         try:
