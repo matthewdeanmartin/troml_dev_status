@@ -4,8 +4,9 @@ from __future__ import annotations
 import ast
 import logging
 import re
+import sys
 from pathlib import Path
-from typing import Iterable, Iterator
+from typing import Any, Iterable, Iterator
 
 from troml_dev_status.analysis.filesystem import find_src_dir
 from troml_dev_status.analysis.iter_the_files import _iter_files, iter_files2
@@ -115,10 +116,16 @@ def _function_body_is_single_raise_notimplemented(func: ast.AST) -> bool:
     first_line = getattr(stmts[0], "value", None)
     if first_line and isinstance(first_line, str):
         first_line_is_str = True
+
+    if sys.version_info.minor >= 14:
+        type_list: Any = (ast.Constant,)
+    else:
+        type_list = (ast.Str, ast.Constant)  # type: ignore[attr-defined]
+
     if (
         stmts
         and isinstance(stmts[0], ast.Expr)
-        and isinstance(getattr(stmts[0], "value", None), (ast.Str, ast.Constant))
+        and isinstance(getattr(stmts[0], "value", None), type_list)
         and first_line_is_str
     ):  # isinstance(getattr(stmts[0], "value", None).value, str):
         stmts = stmts[1:]
@@ -154,10 +161,14 @@ def _function_body_is_only_pass(func: ast.AST) -> bool:
         first_line = getattr(stmts[0], "value", None)
         if first_line and isinstance(first_line, str):
             first_line_is_str = True
+    if sys.version_info.minor >= 14:
+        type_list: Any = (ast.Constant,)
+    else:
+        type_list = (ast.Str, ast.Constant)  # type: ignore[attr-defined]
     if (
         stmts
         and isinstance(stmts[0], ast.Expr)
-        and isinstance(getattr(stmts[0], "value", None), (ast.Str, ast.Constant))
+        and isinstance(getattr(stmts[0], "value", None), type_list)
         and first_line_is_str
     ):
         stmts = stmts[1:]
@@ -317,20 +328,30 @@ def _is_stub_file(path: Path) -> bool:
         first_line = getattr(module_body[0], "value", None)
         if first_line and isinstance(first_line, str):
             first_line_is_str = True
-
+    if sys.version_info.minor >= 14:
+        type_list: Any = (ast.Constant,)
+    else:
+        type_list = (ast.Str, ast.Constant)  # type: ignore[attr-defined]
     if (
         module_body
         and isinstance(module_body[0], ast.Expr)
-        and isinstance(getattr(module_body[0], "value", None), (ast.Str, ast.Constant))
+        and isinstance(getattr(module_body[0], "value", None), type_list)
         and first_line_is_str
     ):
         module_body = module_body[1:]
+
+    if sys.version_info.major <= 3 and sys.version_info.minor < 14:
+        ellipsis = ast.Ellipsis  # type: ignore[attr-defined]
+    else:
+        ellipsis = (
+            None  # this doesn't work anymore! Constant matches on something real.
+        )
 
     for node in module_body:
         if isinstance(node, ast.Pass):
             continue
         if isinstance(node, ast.Expr) and isinstance(
-            getattr(node, "value", None), ast.Ellipsis
+            getattr(node, "value", None), ellipsis
         ):
             continue
         if isinstance(node, ast.Raise) and _is_raise_notimplemented(node):
@@ -357,7 +378,7 @@ def _is_stub_file(path: Path) -> bool:
             if (
                 body
                 and isinstance(body[0], ast.Expr)
-                and isinstance(getattr(body[0], "value", None), (ast.Str, ast.Constant))
+                and isinstance(getattr(body[0], "value", None), type_list)
                 and first_line_is_str
             ):
                 body = body[1:]

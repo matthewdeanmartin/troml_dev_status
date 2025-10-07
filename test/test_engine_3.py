@@ -12,28 +12,98 @@ from troml_dev_status.models import CheckResult, Metrics
 # We redefine the check families here to make the test self-contained and
 # resilient to changes in the main engine file.
 ALL_CHECKS = {
-    "R1", "R2", "R3", "R4 (12mo)", "R5", "R6",
-    "Q1", "Q2", "Q3", "Q4", "Q5", "Q6", "Q7", "Q8", "Q9",
+    "R1",
+    "R2",
+    "R3",
+    "R4 (12mo)",
+    "R5",
+    "R6",
+    "Q1",
+    "Q2",
+    "Q3",
+    "Q4",
+    "Q5",
+    "Q6",
+    "Q7",
+    "Q8",
+    "Q9",
     "S1",
     "D1",
-    "C1", "C2", "C3", "C4",
-    "M1", "M2 (12mo)",
-    "Cmpl1", "Cmpl2", "Cmpl3", "Cmpl4",
-    "Fail0", "Fail1", "Fail2", "Fail3", "Fail4", "Fail5", "Fail6",
-    "Fail7", "Fail8", "Fail9", "Fail10", "Fail11", "Fail12",
+    "C1",
+    "C2",
+    "C3",
+    "C4",
+    "M1",
+    "M2 (12mo)",
+    "Cmpl1",
+    "Cmpl2",
+    "Cmpl3",
+    "Cmpl4",
+    "Fail0",
+    "Fail1",
+    "Fail2",
+    "Fail3",
+    "Fail4",
+    "Fail5",
+    "Fail6",
+    "Fail7",
+    "Fail8",
+    "Fail9",
+    "Fail10",
+    "Fail11",
+    "Fail12",
 }
 
 BADNESS_SRC = {
-    "Fail0", "Fail1", "Fail2", "Fail3", "Fail4", "Fail5", "Fail6",
-    "Fail7", "Fail8", "Fail9", "Fail10", "Fail11", "Fail12",
+    "Fail0",
+    "Fail1",
+    "Fail2",
+    "Fail3",
+    "Fail4",
+    "Fail5",
+    "Fail6",
+    "Fail7",
+    "Fail8",
+    "Fail9",
+    "Fail10",
+    "Fail11",
+    "Fail12",
 }
 EPS_SRC = {
-    "R2", "R3", "R5", "R6", "Q1", "Q2", "Q3", "Q4", "Q5", "Q6", "Q7",
-    "S1", "C1", "C3", "C4", "M1",
+    "R2",
+    "R3",
+    "R5",
+    "R6",
+    "Q1",
+    "Q2",
+    "Q3",
+    "Q4",
+    "Q5",
+    "Q6",
+    "Q7",
+    "S1",
+    "C1",
+    "C3",
+    "C4",
+    "M1",
 }
 COMPLETENESS_SRC = {
-    "C1", "C3", "C4", "Cmpl1", "Cmpl2", "Cmpl3", "Cmpl4", "Q1", "Q2",
-    "Q3", "Q4", "Q6", "Q7", "R5", "R6", "S1",
+    "C1",
+    "C3",
+    "C4",
+    "Cmpl1",
+    "Cmpl2",
+    "Cmpl3",
+    "Cmpl4",
+    "Q1",
+    "Q2",
+    "Q3",
+    "Q4",
+    "Q6",
+    "Q7",
+    "R5",
+    "R6",
+    "S1",
 }
 LTS_SRC = {"Q7", "D1", "Q2", "R6", "M1"}
 
@@ -66,7 +136,8 @@ test_scenarios = [
     ),
     (
         "planning",
-        (ALL_CHECKS - BADNESS_SRC) - {"Q8", "Q9", "Cmpl1", "Cmpl2"},  # Pass all badness, miss a few others
+        (ALL_CHECKS - BADNESS_SRC)
+        - {"Q8", "Q9", "Cmpl1", "Cmpl2"},  # Pass all badness, miss a few others
         "Development Status :: 1 - Planning",
     ),
     (
@@ -77,7 +148,8 @@ test_scenarios = [
     ),
     (
         "pre_alpha_score",
-        {"R1", "R2", "R3", "R5", "Q1", "M1"} | BADNESS_SRC,  # Pass all badness and a small set of EPS
+        {"R1", "R2", "R3", "R5", "Q1", "M1"}
+        | BADNESS_SRC,  # Pass all badness and a small set of EPS
         "Development Status :: 2 - Pre-Alpha",
     ),
     (
@@ -87,12 +159,15 @@ test_scenarios = [
     ),
     (
         "planning_low_completeness",
-        {"R1"} | BADNESS_SRC,  # Pass R1 and all badness, but fail almost all completeness
+        {"R1"}
+        | BADNESS_SRC,  # Pass R1 and all badness, but fail almost all completeness
         "Development Status :: 1 - Planning",
     ),
     (
         "planning_low_badness",
-        {"R1"} | COMPLETENESS_SRC - BADNESS_SRC,  # Pass R1 and completeness, but fail badness checks
+        {"R1"}
+        | COMPLETENESS_SRC
+        - BADNESS_SRC,  # Pass R1 and completeness, but fail badness checks
         "Development Status :: 1 - Planning",
     ),
 ]
@@ -120,4 +195,6 @@ def test_determine_status_scenarios(test_id, passed_checks, expected_classifier)
     )
 
     # Assert
-    assert classifier == expected_classifier, f"Failed on test case: {test_id}\nReason: {reason}"
+    assert (
+        classifier == expected_classifier
+    ), f"Failed on test case: {test_id}\nReason: {reason}"

@@ -67,7 +67,6 @@ LTS_SRC = {
 }
 
 
-
 def create_mock_results(passed_ids: set[str]) -> dict[str, CheckResult]:
     """Helper to generate a results dictionary for determine_status."""
     ALL_CHECK_IDS = BADNESS_SRC | EPS_SRC | COMPLETENESS_SRC | LTS_SRC | {"R1"}
@@ -203,19 +202,31 @@ def test_gate_planning_on_low_badness_score():
         (
             "Meets Mature",
             # All EPS, Completeness, Badness, and LTS checks must pass.
-            {"R1"} | set(EPS_SRC) | set(COMPLETENESS_SRC) | set(BADNESS_SRC) | set(LTS_SRC),
+            {"R1"}
+            | set(EPS_SRC)
+            | set(COMPLETENESS_SRC)
+            | set(BADNESS_SRC)
+            | set(LTS_SRC),
             "Development Status :: 6 - Mature",
         ),
         (
             "Fails Mature on LTS",
             # Perfect score everywhere but one LTS check fails
-            {"R1"} | set(EPS_SRC) | set(COMPLETENESS_SRC) | set(BADNESS_SRC) | (set(LTS_SRC) - {"D1"}),
+            {"R1"}
+            | set(EPS_SRC)
+            | set(COMPLETENESS_SRC)
+            | set(BADNESS_SRC)
+            | (set(LTS_SRC) - {"D1"}),
             "Development Status :: 5 - Production/Stable",  # Drops to Production
         ),
         (
             "Fails Mature on Badness",
             # Perfect score everywhere but one Badness check fails
-            {"R1"} | set(EPS_SRC) | set(COMPLETENESS_SRC) | (set(BADNESS_SRC) - {"Fail1"}) | set(LTS_SRC),
+            {"R1"}
+            | set(EPS_SRC)
+            | set(COMPLETENESS_SRC)
+            | (set(BADNESS_SRC) - {"Fail1"})
+            | set(LTS_SRC),
             "Development Status :: 5 - Production/Stable",  # Drops to Production
         ),
     ],
