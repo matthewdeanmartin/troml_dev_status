@@ -44,10 +44,20 @@ test: clean uv.lock install_plugins
 	$(VENV) isort .
 	@touch .build_history/isort
 
+jiggle_version:
+ifeq ($(CI),true)
+	@echo "Running in CI mode"
+	jiggle_version check
+else
+	@echo "Running locally"
+	jiggle_version hash-all
+	# jiggle_version bump --increment auto
+endif
+
 .PHONY: isort
 isort: .build_history/isort
 
-.build_history/black: .build_history .build_history/isort $(FILES)
+.build_history/black: .build_history .build_history/isort $(FILES) jiggle_version
 	@echo "Formatting code"
 	$(VENV) metametameta pep621
 	$(VENV) black troml_dev_status # --exclude .venv

@@ -27,14 +27,14 @@ Also out of scope - linting, type annotations, code coverage in the sense of run
 Surprisingly out of scope - interface and API stability. Impossible to evaluate in Python (several noble attempts!),
 depends on developer wishes, hopes, aspirations, vibes which require psychology tests, not build tools.
 
-[![tests](https://github.com/matthewdeanmartin/metametameta/actions/workflows/build.yml/badge.svg)
-](https://github.com/matthewdeanmartin/metametameta/actions/workflows/tests.yml)
-[![pre-commit.ci status](https://results.pre-commit.ci/badge/github/matthewdeanmartin/metametameta/main.svg)
-](https://results.pre-commit.ci/latest/github/matthewdeanmartin/metametameta/main)
-[![Downloads](https://img.shields.io/pypi/dm/metametameta)](https://pypistats.org/packages/metametameta)
-[![Python Version](https://img.shields.io/pypi/pyversions/metametameta)
-![Release](https://img.shields.io/pypi/v/metametameta)
-](https://pypi.org/project/metametameta/)
+[![tests](https://github.com/matthewdeanmartin/troml_dev_status/actions/workflows/build.yml/badge.svg)
+](https://github.com/matthewdeanmartin/troml_dev_status/actions/workflows/tests.yml)
+[![pre-commit.ci status](https://results.pre-commit.ci/badge/github/matthewdeanmartin/troml_dev_status/main.svg)
+](https://results.pre-commit.ci/latest/github/matthewdeanmartin/troml_dev_status/main)
+[![Downloads](https://img.shields.io/pypi/dm/troml_dev_status)](https://pypistats.org/packages/troml_dev_status)
+[![Python Version](https://img.shields.io/pypi/pyversions/troml_dev_status)
+![Release](https://img.shields.io/pypi/v/troml_dev_status)
+](https://pypi.org/project/troml-dev-status/)
 
 ## Installation
 
@@ -115,8 +115,8 @@ The tool also prints a detailed JSON object containing the results of every chec
 | Metric      | Status                                                                                                                                                                                                                |
 |-------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | Coverage    | [![codecov](https://codecov.io/gh/matthewdeanmartin/troml_dev_status/branch/main/graph/badge.svg)](https://codecov.io/gh/matthewdeanmartin/troml_dev_status)                                                          |
-| Docs        | [![Docs](https://troml-dev-status.readthedocs.org/projects/troml_dev_status/badge/?version=latest)](https://troml-dev-status.readthedocs.io/en/latest/)                                                                                |
-| PyPI        | [![PyPI](https://img.shields.io/pypi/v/troml_dev_status)](https://pypi.org/project/troml_dev_status/)                                                                                                                 |
+| Docs        | [![Docs](https://troml-dev-status.readthedocs.org/projects/troml_dev_status/badge/?version=latest)](https://troml-dev-status.readthedocs.io/en/latest/)                                                               |
+| PyPI        | [![PyPI](https://img.shields.io/pypi/v/troml_dev_status)](https://pypi.org/project/troml-dev-status/)                                                                                                                 |
 | Downloads   | [![Downloads](https://static.pepy.tech/personalized-badge/troml-dev-status?period=total&units=international_system&left_color=grey&right_color=blue&left_text=Downloads)](https://pepy.tech/project/troml_dev_status) |
 | License     | [![License](https://img.shields.io/github/license/matthewdeanmartin/troml_dev_status)](https://github.com/matthewdeanmartin/troml_dev_status/blob/main/LICENSE)                                                       |
 | Last Commit | ![Last Commit](https://img.shields.io/github/last-commit/matthewdeanmartin/troml_dev_status)                                                                                                                          |
