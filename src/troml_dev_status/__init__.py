@@ -21,7 +21,7 @@ The primary public API includes:
 """
 from __future__ import annotations
 
-from .analysis.readme_eval import RubricResult, evaluate_readme
+# from .analysis.readme_eval import RubricResult, evaluate_readme
 from .analysis.validate_changelog import ChangelogValidator
 from .engine import run_analysis
 from .models import CheckResult, EvidenceReport, Metrics

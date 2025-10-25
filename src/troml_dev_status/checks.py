@@ -26,7 +26,7 @@ from troml_dev_status.analysis.filesystem import (
 from troml_dev_status.analysis.find_tests import count_tests
 from troml_dev_status.analysis.git import get_latest_commit_date
 from troml_dev_status.analysis.pypi import latest_release_has_attestations
-from troml_dev_status.analysis.readme_eval import evaluate_readme
+# from troml_dev_status.analysis.readme_eval import evaluate_readme
 from troml_dev_status.analysis.support_per_endoflife import fetch_latest_supported_minor
 from troml_dev_status.analysis.validate_changelog import ChangelogValidator
 from troml_dev_status.models import CheckResult
@@ -238,20 +238,12 @@ def check_q8_readme_complete(repo_path: Path) -> CheckResult:
     readme_path = next(repo_path.glob("README*"), None)
     if readme_path and readme_path.is_file():
         content = readme_path.read_text(encoding="utf-8")
-        result = evaluate_readme(md=content)
-
-        suggestions = "\n".join(result.suggestions)
-
-        if result.total > (result.max_possible / 2):
+        # Old readme checker on hold.
+        if content:
             return CheckResult(
                 passed=True,
-                evidence=f"README has scored {result.total} out of {result.max_possible}.",
+                evidence=f"README exists.",
             )
-        return CheckResult(
-            passed=False,
-            evidence=f"README has scored {result.total} out of {result.max_possible}.\n{suggestions}",
-        )
-
     return CheckResult(
         passed=False, evidence="No docs config or sufficient README found."
     )

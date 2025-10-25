@@ -343,8 +343,8 @@ def _is_stub_file(path: Path) -> bool:
     if sys.version_info.major <= 3 and sys.version_info.minor < 14:
         ellipsis = ast.Ellipsis  # type: ignore[attr-defined]
     else:
-        ellipsis = (
-            None  # this doesn't work anymore! Constant matches on something real.
+        ellipsis = tuple(
+             # this doesn't work anymore! Constant matches on something real.
         )
 
     for node in module_body:

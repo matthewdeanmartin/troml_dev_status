@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Sequence
 
 from rich.console import Console
+from troml_dev_status.__about__ import __version__
 
 from troml_dev_status.analysis import filesystem
 from troml_dev_status.engine import run_analysis
@@ -165,9 +166,14 @@ def cmd_update(args: argparse.Namespace, console: Console) -> int:
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=(
-            "Infer PyPI Development Status from code and release artifacts (PEP XXXX)."
+            "Infer PyPI Development Status from code and release artifacts."
         )
     )
+
+    parser.add_argument(
+        "-v", "--version", action="version", version=f"%(prog)s {__version__}"
+    )
+
 
     sub = parser.add_subparsers(dest="command", required=False)
 

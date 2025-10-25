@@ -1,0 +1,13 @@
+# Example configuration for readme-rater.
+# Copy this to .config/settings.toml and customize.
+
+[llm]
+# The model identifier for the LLM API.
+# See https://openrouter.ai/models for options.
+model = "openai/gpt-4o"
+
+# The base URL of the OpenAI-compatible API.
+base_url = "https://openrouter.ai/api/v1"
+
+# The API key can be set here, but using a .env file is recommended.
+# api_key = "sk-..."

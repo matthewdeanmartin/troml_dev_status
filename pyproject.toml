@@ -49,7 +49,11 @@ dependencies = [
     "semantic-version>=2.10.0",
     "jinja2>=3.1.6",
     # for counting tests.
-    "pytest>0.0.0"
+    "pytest>0.0.0",
+    # For LLM Features. They don't run by accident, so just including them
+    # Readme Rater
+    "openai>=2.6.1",
+    "pydantic_settings>1.0.0"
 ]
 
 [dependency-groups]
@@ -118,6 +122,8 @@ issues = "https://github.com/matthewdeanmartin/troml_dev_status/issues/"
 [project.scripts]
 troml-dev-status = "troml_dev_status.cli:main"
 troml_dev_status = "troml_dev_status.cli:main"
+readme-rater = "readme_rater.cli:main"
+readme_rater = "readme_rater.cli:main"
 
 [build-system]
 requires = ["hatchling"]
@@ -125,9 +131,8 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.sdist]
 include = [
-    "troml_dev_status/**/*.py",
-    "troml_dev_status/schemas/*",
-    "troml_dev_status/py.typed",
+    "src/troml_dev_status/**/*.py",
+    "src/troml_dev_status/py.typed",
     "/README.md", "LICENSE",
 ]
 
@@ -135,15 +140,18 @@ exclude = [
 
 ]
 
+
 [tool.hatch.build.targets.wheel]
-packages = ["troml_dev_status"]
+packages = ["src/troml_dev_status"]
 include = [
-    "troml_dev_status/**/*.py",
-    "troml_dev_status/schemas/*",
-    "troml_dev_status/py.typed",
+    "src/troml_dev_status/**/*.py",
+    "src/troml_dev_status/py.typed",
     "/README.md", "LICENSE",
 ]
 
+
+[mypy]
+plugins = "pydantic.mypy"
+
 [tool.troml-dev-status]
 mode = "application"  # or "library"
-
