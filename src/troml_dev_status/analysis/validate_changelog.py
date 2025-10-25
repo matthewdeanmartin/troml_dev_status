@@ -184,43 +184,47 @@ class ChangelogValidator:
 
 
 if __name__ == "__main__":
-    # --- Example Usage ---
 
-    # 1. A valid changelog string
-    valid_changelog_string = """# Changelog
-## [Unreleased]
-### Fixed
-- A bug was fixed.
-## [1.0.0] - 2025-09-20
-### Added
-- Initial project release.
-"""
+    def run() -> None:
+        # --- Example Usage ---
 
-    # 2. An invalid changelog string with multiple errors
-    invalid_changelog_string = """# Changelog
-## [1.0.0] - 2025/09/20
-### New Things
-- A new feature.
-  - A sub-list item which is not allowed.
-#### Invalid Header
-"""
+        # 1. A valid changelog string
+        valid_changelog_string = """# Changelog
+    ## [Unreleased]
+    ### Fixed
+    - A bug was fixed.
+    ## [1.0.0] - 2025-09-20
+    ### Added
+    - Initial project release.
+    """
 
-    validator = ChangelogValidator(file_name="../../CHANGELOG.md")
+        # 2. An invalid changelog string with multiple errors
+        invalid_changelog_string = """# Changelog
+    ## [1.0.0] - 2025/09/20
+    ### New Things
+    - A new feature.
+      - A sub-list item which is not allowed.
+    #### Invalid Header
+    """
 
-    print("--- 1. Validating a correct changelog ---")
-    errors = validator.validate(valid_changelog_string)
-    if not errors:
-        print("✅ OK: No errors found.\n")
-    else:
-        for error in errors:
-            error.report()
+        validator = ChangelogValidator(file_name="../../CHANGELOG.md")
 
-    print("\n--- 2. Validating an incorrect changelog ---")
-    errors = validator.validate(invalid_changelog_string)
-    if errors:
-        print(f"❌ Found {len(errors)} error(s):")
-        # The .report() method prints the fancy error format
-        for error in errors:
-            error.report()
-    else:
-        print("Validation passed unexpectedly.")
+        print("--- 1. Validating a correct changelog ---")
+        errors = validator.validate(valid_changelog_string)
+        if not errors:
+            print("✅ OK: No errors found.\n")
+        else:
+            for error in errors:
+                error.report()
+
+        print("\n--- 2. Validating an incorrect changelog ---")
+        errors = validator.validate(invalid_changelog_string)
+        if errors:
+            print(f"❌ Found {len(errors)} error(s):")
+            # The .report() method prints the fancy error format
+            for error in errors:
+                error.report()
+        else:
+            print("Validation passed unexpectedly.")
+
+    run()

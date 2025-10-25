@@ -328,7 +328,7 @@ def score_code_blocks(md: str) -> ScoreItem:
 
 
 def _classify_specific_badges(urls: List[str]) -> Dict[str, bool]:
-    specific = {k: False for k in SPECIFIC_BADGE_CHECKS.keys()}
+    specific = {k: False for k in SPECIFIC_BADGE_CHECKS}
     for url in urls:
         for cls, pats in SPECIFIC_BADGE_CHECKS.items():
             if specific[cls]:

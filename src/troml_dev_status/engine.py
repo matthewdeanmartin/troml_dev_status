@@ -543,5 +543,3 @@ def determine_status(
     return "Development Status :: 1 - Planning", detailed_reason(
         "Project scores do not meet the criteria for Pre-Alpha or higher."
     )
-    logger.debug("Fall-through -> Unknown")
-    return "Unknown", "Could not map to a development status based on checks."

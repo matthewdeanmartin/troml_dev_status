@@ -9,8 +9,8 @@ from pathlib import Path
 from typing import Sequence
 
 from rich.console import Console
-from troml_dev_status.__about__ import __version__
 
+from troml_dev_status.__about__ import __version__
 from troml_dev_status.analysis import filesystem
 from troml_dev_status.engine import run_analysis
 from troml_dev_status.reporting import (

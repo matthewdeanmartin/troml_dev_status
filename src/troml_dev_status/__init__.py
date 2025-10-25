@@ -35,6 +35,6 @@ __all__ = [
     "Metrics",
     # Standalone utilities
     "ChangelogValidator",
-    "evaluate_readme",
-    "RubricResult",
+    # "evaluate_readme",
+    # "RubricResult",
 ]

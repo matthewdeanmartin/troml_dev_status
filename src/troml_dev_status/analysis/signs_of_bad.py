@@ -653,7 +653,7 @@ def check_ds12_declares_deps_but_never_imports(repo_path: Path) -> CheckResult:
             passed=False,
             evidence=f"None of the declared deps are imported: {', '.join(sorted(req_names))}.",
         )
-    elif unused:
+    if unused:
         return CheckResult(
             passed=True,
             evidence=f"Some declared deps unused (not imported): {', '.join(unused)}.",

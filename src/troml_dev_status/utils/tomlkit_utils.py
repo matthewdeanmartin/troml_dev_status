@@ -25,7 +25,7 @@ def load_pyproject_toml(
         return None
 
     content = pyproject_path.read_text(encoding="utf-8")
-    if tomlkit:
+    if tomlkit:  # pylint: disable=using-constant-test
         try:
             return tomlkit.parse(content)
         except Exception:  # nosec # noqa
