@@ -1,4 +1,5 @@
 """Data models for rubric items, ratings, and application state."""
+
 from __future__ import annotations
 
 from typing import Literal

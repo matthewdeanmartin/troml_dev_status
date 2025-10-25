@@ -7,7 +7,11 @@ Stdlib-only, single file. Design aid, not final.
 - Toy heuristics stand in for the LLM
 """
 from __future__ import annotations
-import hashlib, json, os, re, sys
+import hashlib
+import json
+import os
+import re
+import sys
 from datetime import datetime, timezone
 from typing import Dict, List
 

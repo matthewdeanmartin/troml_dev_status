@@ -1,6 +1,7 @@
 """
 Implements the scoring logic and qualitative labeling from PEP 8001.
 """
+
 from __future__ import annotations
 
 from . import rubric

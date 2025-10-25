@@ -1,4 +1,5 @@
 """Handles reading/writing the state cache and rendering TOML output."""
+
 from __future__ import annotations
 
 import json

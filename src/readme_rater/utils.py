@@ -1,4 +1,5 @@
 """Stateless helper functions for hashing and timestamps."""
+
 from __future__ import annotations
 
 import hashlib

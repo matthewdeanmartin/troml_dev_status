@@ -1,6 +1,7 @@
 """
 Main orchestrator for the README rating process.
 """
+
 from __future__ import annotations
 
 import logging
@@ -75,7 +76,9 @@ def rate_readme(readme_content: str, full_refresh: bool = False) -> Rating:
         and previous_state.readme_file_hash == readme_hash
         and not full_refresh
     ):
-        logging.info("README content is unchanged. Using cached results for 'pass' items.")
+        logging.info(
+            "README content is unchanged. Using cached results for 'pass' items."
+        )
     else:
         # Content has changed, so ignore the old state for assessment purposes.
         previous_state = None

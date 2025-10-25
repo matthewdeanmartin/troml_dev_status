@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import ast
 import logging
+import os
 import re
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -26,6 +27,7 @@ from troml_dev_status.analysis.filesystem import (
 from troml_dev_status.analysis.find_tests import count_tests
 from troml_dev_status.analysis.git import get_latest_commit_date
 from troml_dev_status.analysis.pypi import latest_release_has_attestations
+
 # from troml_dev_status.analysis.readme_eval import evaluate_readme
 from troml_dev_status.analysis.support_per_endoflife import fetch_latest_supported_minor
 from troml_dev_status.analysis.validate_changelog import ChangelogValidator
@@ -142,47 +144,121 @@ def check_q4_test_file_ratio(repo_path: Path) -> CheckResult:
     )
 
 
+# def find_src_dir(repo_path: Path, *, venv_mode: bool = False) -> Path | None:
+#     """Finds the primary source directory (e.g., 'src/' or the package dir)."""
+#     if os.environ.get("TROML_DEV_STATUS_VENV_MODE"):
+#         venv_mode = True
+#     src_path = repo_path / "src"
+#     if src_path.is_dir():
+#         return src_path
+#
+#     name = get_project_name(repo_path, venv_mode=venv_mode)
+#     if name:
+#         # Handle both hyphenated and underscored package names
+#         package_path_hyphen = repo_path / name
+#         package_path_underscore = repo_path / name.replace("-", "_")
+#         if package_path_hyphen.is_dir():
+#             return package_path_hyphen
+#         if package_path_underscore.is_dir():
+#             return package_path_underscore
+#     return None
+
+
+def _env_or_param_venv_mode(venv_mode: bool) -> bool:
+    # Preserve existing behavior: env var overrides.
+    if os.environ.get("TROML_DEV_STATUS_VENV_MODE"):
+        return True
+    return venv_mode
+
+
+def find_top_level_package_dirs(
+    repo_path: Path, *, venv_mode: bool = False
+) -> list[Path]:
+    """
+    Return all immediate child directories that look like top-level Python packages:
+    - If 'src/' exists, search under 'src/' (e.g., src/a, src/b).
+    - Else, search under repo root (e.g., a/).
+    A directory is a package if it contains '__init__.py'.
+    """
+    venv_mode = _env_or_param_venv_mode(venv_mode)
+    # venv_mode currently unused in discovery; keep hook for future logic parity.
+    base = repo_path / "src" if (repo_path / "src").is_dir() else repo_path
+
+    packages: list[Path] = []
+    if base.is_dir():
+        for child in base.iterdir():
+            if child.is_dir() and (child / "__init__.py").exists():
+                packages.append(child)
+    return packages
+
+
+def _aggregate_coverage_over_packages(pkg_dirs: list[Path]) -> tuple[float, int]:
+    """
+    Combine per-package (coverage%, total_symbols) into a single aggregate:
+    annotated = coverage% * total / 100
+    aggregate_coverage% = sum(annotated) / sum(total) * 100
+    Returns (aggregate_coverage_percent, aggregate_total_symbols)
+    """
+    annotated_sum = 0.0
+    total_sum = 0
+    for pkg in pkg_dirs:
+        cov, total = analyze_type_hint_coverage(pkg)
+        # Convert percent to count of annotated symbols.
+        annotated_sum += (cov / 100.0) * total
+        total_sum += total
+
+    if total_sum == 0:
+        return 0.0, 0
+    return (annotated_sum / total_sum) * 100.0, total_sum
+
+
 def check_q5_type_hints_shipped(repo_path: Path) -> tuple[CheckResult, float, int]:
-    src_dir = find_src_dir(repo_path)
-    if not src_dir:
+    """
+    Q5: Types are shipped.
+    - Detect all top-level packages:
+        * src/<pkg>/__init__.py ... or
+        * <pkg>/__init__.py      (no src/)
+    - Require 'py.typed' inside each detected package directory.
+    - Aggregate type-hint coverage across all detected packages.
+    """
+    pkgs = find_top_level_package_dirs(repo_path)
+    if not pkgs:
         return (
-            CheckResult(passed=False, evidence="Could not determine source directory."),
+            CheckResult(
+                passed=False,
+                evidence="No top-level packages found (looked for dirs with __init__.py under src/ or repo root).",
+            ),
             0.0,
             0,
         )
 
-    if not (src_dir / "py.typed").exists():
+    missing = [p.name for p in pkgs if not (p / "py.typed").exists()]
+    if missing:
         return (
-            CheckResult(passed=False, evidence="py.typed file required."),
+            CheckResult(
+                passed=False,
+                evidence=f"py.typed required in packages: {', '.join(missing)}.",
+            ),
             0.0,
             0,
         )
 
-    coverage, total_symbols = analyze_type_hint_coverage(src_dir)
+    coverage, total_symbols = _aggregate_coverage_over_packages(pkgs)
 
     if total_symbols == 0:
         return (
             CheckResult(
-                passed=False, evidence="No public functions/methods found in source."
+                passed=False,
+                evidence="No public functions/methods found in detected packages.",
             ),
             0.0,
             0,
         )
 
-    if coverage >= 70.0:
-        return (
-            CheckResult(
-                passed=True,
-                evidence=f"{coverage:.1f}% of {total_symbols} public symbols are annotated.",
-            ),
-            coverage,
-            total_symbols,
-        )
+    passed = coverage >= 70.0
+    evidence = f"{coverage:.1f}% of {total_symbols} public symbols are annotated across {len(pkgs)} package(s): {', '.join(p.name for p in pkgs)}."
     return (
-        CheckResult(
-            passed=False,
-            evidence=f"{coverage:.1f}% of {total_symbols} public symbols are annotated.",
-        ),
+        CheckResult(passed=passed, evidence=evidence),
         coverage,
         total_symbols,
     )
@@ -242,7 +318,7 @@ def check_q8_readme_complete(repo_path: Path) -> CheckResult:
         if content:
             return CheckResult(
                 passed=True,
-                evidence=f"README exists.",
+                evidence="README exists.",
             )
     return CheckResult(
         passed=False, evidence="No docs config or sufficient README found."

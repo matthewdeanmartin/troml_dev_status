@@ -1,4 +1,4 @@
-"""Metadata for troml_dev_status."""
+"""Metadata for troml-dev-status."""
 
 __all__ = [
     "__title__",

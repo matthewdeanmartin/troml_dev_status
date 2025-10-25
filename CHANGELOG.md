@@ -12,6 +12,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed for any bug fixes.
 - Security in case of vulnerabilities.
 
+## [0.5.0] - 0-0-0
+
+### Fixed
+
+- Failed to detect py.typed correctly in multi-module /src/ layouts
+
+### Added
+
+- Readme Rater is an LLM-based rater. Opt-in, has no effect unless a key is present.
+- Completeness Checker is an LLM-base checker. Opt-in, has no effect unless a key is present.
+
+### Removed
+
+- NLP style README rating removed because it just didn't work
+
+
 ## [0.4.2] - 2025-10-01
 
 ### Fixed

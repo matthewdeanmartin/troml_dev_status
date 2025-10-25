@@ -165,15 +165,12 @@ def cmd_update(args: argparse.Namespace, console: Console) -> int:
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description=(
-            "Infer PyPI Development Status from code and release artifacts."
-        )
+        description=("Infer PyPI Development Status from code and release artifacts.")
     )
 
     parser.add_argument(
         "-v", "--version", action="version", version=f"%(prog)s {__version__}"
     )
-
 
     sub = parser.add_subparsers(dest="command", required=False)
 

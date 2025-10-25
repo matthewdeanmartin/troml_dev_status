@@ -1,4 +1,5 @@
 """Allows the package to be run as a script via `python -m readme_rater`."""
+
 from __future__ import annotations
 
 import sys

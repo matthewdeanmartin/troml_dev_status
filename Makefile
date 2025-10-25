@@ -73,7 +73,7 @@ isort: .build_history/isort
 	# Format all code in src and test
 	$(VENV) black src test # --exclude .venv
 	# Generate a single SOURCE.md from all packages
-	$(VENV) git2md $(PACKAGES) --ignore __init__.py __pycache__ --output SOURCE.md
+	$(VENV) ./scripts/make_source.sh # git2md $(PACKAGES) --ignore __init__.py __pycache__ --output SOURCE.md
 	@touch .build_history/black
 
 .PHONY: black

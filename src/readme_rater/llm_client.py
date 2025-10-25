@@ -1,4 +1,5 @@
 """Handles all communication with the OpenAI-compatible LLM API."""
+
 from __future__ import annotations
 
 import json
@@ -7,7 +8,7 @@ from typing import Dict, List
 
 from openai import OpenAI, OpenAIError
 
-from . import config, rubric
+from . import config
 from .models import RubricItem
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
@@ -73,9 +74,7 @@ Provide your evaluation as a JSON array of objects.
 """
 
 
-def assess_readme(
-    readme_content: str, ids_to_check: List[str]
-) -> List[RubricItem]:
+def assess_readme(readme_content: str, ids_to_check: List[str]) -> List[RubricItem]:
     """
     Assesses a README file against a list of rubric items using an LLM.
 

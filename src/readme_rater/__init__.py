@@ -4,6 +4,7 @@ readme-rater: Prescriptive Readme Quality Analysis via LLM.
 This package provides a programmatic API and a command-line tool to rate
 the quality of a README.md file based on the rubric defined in PEP 8001.
 """
+
 from __future__ import annotations
 
 from .models import Rating, RubricItem, RubricStatus
