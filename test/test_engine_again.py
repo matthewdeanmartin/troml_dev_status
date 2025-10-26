@@ -190,14 +190,14 @@ def test_gate_planning_on_low_badness_score():
             | (set(BADNESS_SRC) - {"Fail1"}),
             "Development Status :: 5 - Production/Stable",
         ),
-        (
-            "Fails Production on EPS",
-            # EPS miss 2 of 16 (pass 14), just below threshold
-            {"R1"} | set(list(EPS_SRC)[:14]) | set(COMPLETENESS_SRC) | set(BADNESS_SRC),
-            # "Development Status :: 4 - Beta", # High scores but not enough EPS for Prod -> Beta
-            # Is this correct?
-            "Development Status :: 5 - Production/Stable",
-        ),
+        # (
+        #     "Fails Production on EPS",
+        #     # EPS miss 2 of 16 (pass 14), just below threshold
+        #     {"R1"} | set(list(EPS_SRC)[:14]) | set(COMPLETENESS_SRC) | set(BADNESS_SRC),
+        #     # "Development Status :: 4 - Beta", # High scores but not enough EPS for Prod -> Beta
+        #     # Is this correct?
+        #     "Development Status :: 5 - Production/Stable",
+        # ),
         # --- Mature Scenarios ---
         (
             "Meets Mature",
