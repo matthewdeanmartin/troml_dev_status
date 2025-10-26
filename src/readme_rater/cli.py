@@ -1,3 +1,4 @@
+# readme_rater/cli.py
 """Command-line interface for the README Rater."""
 
 from __future__ import annotations
@@ -7,7 +8,7 @@ import logging
 import sys
 from pathlib import Path
 
-from . import rater, state
+from readme_rater import rater, state
 
 
 def main() -> int:

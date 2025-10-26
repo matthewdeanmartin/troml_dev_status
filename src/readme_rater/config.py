@@ -1,3 +1,4 @@
+# readme_rater/config.py
 """Handles loading and validation of application settings."""
 
 from __future__ import annotations

@@ -1,3 +1,4 @@
+# readme_rater/state.py
 """Handles reading/writing the state cache and rendering TOML output."""
 
 from __future__ import annotations
@@ -8,8 +9,8 @@ from typing import Optional
 
 import tomlkit
 
-from . import config
-from .models import Rating, State
+from readme_rater import config
+from readme_rater.models import Rating, State
 
 
 def get_state_path() -> Path:

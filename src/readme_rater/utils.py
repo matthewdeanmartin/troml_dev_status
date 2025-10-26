@@ -1,3 +1,4 @@
+# readme_rater/utils.py
 """Stateless helper functions for hashing and timestamps."""
 
 from __future__ import annotations

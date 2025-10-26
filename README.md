@@ -62,6 +62,10 @@ troml-dev-status update /path/to/your/project
 The tool will analyze the project's PyPI releases, Git history, and source code to produce an evidence-based "
 Development Status" classifier.
 
+## README Rating and Completion Checking
+
+These two features require LLMs. If no API key is found (see .env.example) these will be skipped.
+
 ## Output
 
 The tool outputs a human-readable summary table and a machine-readable JSON report.
@@ -153,3 +157,10 @@ License Tracking
 
 - [OpenSSF Best Practices](https://www.bestpractices.dev) - some machine validated criteria and many self asserted.
 - Libraries.io SourceRank - 1/2 things you can control, 1/2 "popularity contest" metrics
+
+
+## Contributing
+
+See the [contributing](docs/contributing.md) file for how to contribute 
+
+See the [development_setup](docs/development_setup.md) file for how to set up and to run a local build.

@@ -1,3 +1,4 @@
+# readme_rater/rater.py
 """
 Main orchestrator for the README rating process.
 """
@@ -7,8 +8,8 @@ from __future__ import annotations
 import logging
 from typing import Dict, List
 
-from . import llm_client, rubric, scoring, state, utils
-from .models import Rating, RubricItem, State
+from readme_rater import llm_client, rubric, scoring, state, utils
+from readme_rater.models import Rating, RubricItem, State
 
 
 def _select_ids_for_check(

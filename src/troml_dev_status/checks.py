@@ -16,6 +16,7 @@ from packaging.requirements import InvalidRequirement, Requirement
 from packaging.specifiers import SpecifierSet
 from packaging.version import InvalidVersion, Version
 
+from troml_dev_status import checks_readme
 from troml_dev_status.analysis.filesystem import (
     analyze_type_hint_coverage,
     count_source_modules,
@@ -142,26 +143,6 @@ def check_q4_test_file_ratio(repo_path: Path) -> CheckResult:
         passed=False,
         evidence=f"Test/source ratio is {ratio:.2f} ({num_tests}/{num_src}), < 0.20.",
     )
-
-
-# def find_src_dir(repo_path: Path, *, venv_mode: bool = False) -> Path | None:
-#     """Finds the primary source directory (e.g., 'src/' or the package dir)."""
-#     if os.environ.get("TROML_DEV_STATUS_VENV_MODE"):
-#         venv_mode = True
-#     src_path = repo_path / "src"
-#     if src_path.is_dir():
-#         return src_path
-#
-#     name = get_project_name(repo_path, venv_mode=venv_mode)
-#     if name:
-#         # Handle both hyphenated and underscored package names
-#         package_path_hyphen = repo_path / name
-#         package_path_underscore = repo_path / name.replace("-", "_")
-#         if package_path_hyphen.is_dir():
-#             return package_path_hyphen
-#         if package_path_underscore.is_dir():
-#             return package_path_underscore
-#     return None
 
 
 def _env_or_param_venv_mode(venv_mode: bool) -> bool:
@@ -311,18 +292,7 @@ def check_q6_docs_present(repo_path: Path) -> tuple[CheckResult, int]:
 
 
 def check_q8_readme_complete(repo_path: Path) -> CheckResult:
-    readme_path = next(repo_path.glob("README*"), None)
-    if readme_path and readme_path.is_file():
-        content = readme_path.read_text(encoding="utf-8")
-        # Old readme checker on hold.
-        if content:
-            return CheckResult(
-                passed=True,
-                evidence="README exists.",
-            )
-    return CheckResult(
-        passed=False, evidence="No docs config or sufficient README found."
-    )
+    return checks_readme.check_q8_readme_complete(repo_path)
 
 
 def check_q9_changelog_validates(repo_path: Path) -> CheckResult:

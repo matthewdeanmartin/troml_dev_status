@@ -174,7 +174,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     sub = parser.add_subparsers(dest="command", required=False)
 
-    # analyze (default) -----------------------------------------------------
+    # analyze (default)
     p_analyze = sub.add_parser(
         "analyze", help="Run analysis and print a report (human/JSON or fancy formats)"
     )
@@ -234,7 +234,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     p_analyze.set_defaults(func=cmd_analyze)
 
-    # validate --------------------------------------------------------------
+    # validate
     p_validate = sub.add_parser(
         "validate",
         help=(
@@ -254,7 +254,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     p_validate.set_defaults(func=cmd_validate)
 
-    # update ----------------------------------------------------------------
+    # update
     p_update = sub.add_parser(
         "update", help="Update pyproject.toml Development Status to the inferred value"
     )
@@ -269,7 +269,7 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
-# ---------------- entry ----------------
+# entry
 
 
 def main(argv: Sequence[str] | None = None) -> int:

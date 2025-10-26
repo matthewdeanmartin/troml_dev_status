@@ -1,145 +1,210 @@
-"""Handles all communication with the OpenAI-compatible LLM API."""
+# readme_rater/llm_client.py
+"""LLM client speaking TOML (single request, no batching)."""
 
 from __future__ import annotations
 
-import json
 import logging
-from typing import Dict, List
+import re
+from typing import Dict, List, Sequence
 
 from openai import OpenAI, OpenAIError
 
-from . import config
-from .models import RubricItem
+from readme_rater import config
+from readme_rater.models import RubricItem
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 
-# A mapping from rubric ID to a more descriptive goal for the LLM.
-# This helps the model understand the *intent* behind each check.
+try:
+    import tomllib as _tomli  # Py>=3.11
+except Exception:  # pragma: no cover
+    import tomli as _tomli  # type: ignore[no-redef]
+
 RUBRIC_DESCRIPTIONS: Dict[str, str] = {
-    "CLARITY_OF_PURPOSE": "Does the README begin with a clear, concise summary of what the package does and its main purpose? A new user should understand the project's goal in the first paragraph.",
-    "QUICKSTART_INSTALL": "Is there a clear, copy-pasteable installation command (e.g., `pip install`) or a prominent link to an installation guide?",
-    "HELLO_WORLD_EXAMPLE": "Can a user find a minimal, complete, and copy-pasteable code example to quickly understand the package's primary function and see it in action?",
-    "VISUAL_DEMONSTRATION": "If the project is visual (e.g., plotting, UI, image processing), does the README include a screenshot, GIF, or example output image? If not a visual tool, this is not applicable.",
-    "CONTRIBUTION_GATEWAY": "Is there a clear section or link to a `CONTRIBUTING.md` file that explains how others can contribute to the project (e.g., bug reports, pull requests)?",
-    "DEVELOPMENT_SETUP": "Are there instructions for a contributor to set up a local development environment and run tests? (e.g., `git clone`, `pip install -e .`, `pytest`)",
-    "LICENSE_CLARITY": "Is the software license clearly stated in the README, or is there a prominent link to a `LICENSE` file?",
-    "PROJECT_HEALTH_BADGES": "Does the README include status badges for things like CI/CD (e.g., GitHub Actions), test coverage, or the latest version on PyPI?",
-    "PRIOR_ART_COMPARISON": "Does the documentation discuss how this project compares to other similar tools or alternatives in the ecosystem?",
-    "DESIGN_RATIONALE": "Does the README explain key design choices, trade-offs, or the philosophy behind the project?",
-    # Add descriptions for all other EXTRA items as needed...
+    "CLARITY_OF_PURPOSE": "Clear one-paragraph summary of purpose.",
+    "QUICKSTART_INSTALL": "Copy-paste install command or obvious link.",
+    "HELLO_WORLD_EXAMPLE": "Minimal runnable example of core use.",
+    "VISUAL_DEMONSTRATION": "Screenshot/GIF if visual tool else N/A.",
+    "CONTRIBUTION_GATEWAY": "Contributing section or CONTRIBUTING.md.",
+    "DEVELOPMENT_SETUP": "Local dev/test instructions.",
+    "LICENSE_CLARITY": "License stated or linked.",
+    "PROJECT_HEALTH_BADGES": "Badges (CI/coverage/version/etc.).",
+    "PRIOR_ART_COMPARISON": "Comparison to similar tools.",
+    "DESIGN_RATIONALE": "Design choices / trade-offs.",
+    "TUTORIAL_OR_WALKTHROUGH": "Step-by-step tutorial.",
+    "REAL_WORLD_USAGE": "Named users or examples.",
+    "PERFORMANCE_SECTION": "Perf/benchmarks/limits.",
+    "CONTAINER_IMAGE_LINK": "Official container or recipe.",
+    "SUPPORT_MATRIX": "Supported OS/Python matrix.",
+    "I18N_SUPPORT_INFO": "Internationalization notes.",
+    "ACCESSIBILITY_DISCUSSION": "Accessibility notes.",
+    "ETHICAL_STATEMENT": "Ethics/responsible-use statement.",
+    "CHANGELOG_LINK": "CHANGELOG/release notes link.",
+    "ROADMAP_OR_VISION": "Roadmap/vision/future plans.",
+    "COMMUNITY_GUIDELINES": "Code of Conduct/community norms.",
+    "FUNDING_INFORMATION": "Funding/sponsorship info.",
+    "ACKNOWLEDGMENTS": "Credits/acknowledgments.",
+    "CONFIGURATION_EXAMPLES": "Config examples.",
+    "API_REFERENCE_LINK": "API reference link.",
+    "ARCHITECTURE_OVERVIEW": "High-level architecture.",
+    "DEPENDENCY_POLICY": "Pins/updates/security policy.",
+    "REPRODUCIBILITY_NOTES": "Lockfiles/seeds/repro notes.",
+    "SECURITY_POLICY_LINK": "SECURITY.md/reporting policy link.",
 }
+
+# --- Prompt construction (TOML, compact, no JSON schema) ---
 
 
 def _construct_system_prompt() -> str:
-    """Creates the system prompt to instruct the LLM on its role and task."""
-    rubric_item_model_schema = RubricItem.model_json_schema()
-
-    return f"""
-You are an expert technical documentation reviewer for Python projects.
-Your task is to evaluate a project's README.md file based on a specific set of criteria.
-
-You will be given the full content of the README.md and a list of rubric items to assess.
-For each rubric item, you must determine if the README successfully meets the goal.
-
-Your response MUST be a JSON array of objects, where each object conforms to the following JSON schema:
-{json.dumps(rubric_item_model_schema, indent=2)}
-
-- The 'id' must be one of the rubric IDs you were asked to assess.
-- The 'status' must be 'pass', 'fail', or 'na' (not applicable).
-- The 'advice' must be a concise, one-sentence recommendation for how the author can improve that specific rubric item. If the status is 'pass', provide a brief confirmation like "Excellent quickstart example provided."
-
-Evaluate each item independently and critically. Be strict but fair.
-"""
-
-
-def _construct_user_prompt(readme_content: str, ids_to_check: List[str]) -> str:
-    """Creates the user prompt containing the README and rubric items."""
-    descriptions = "\n".join(
-        f"- {id_}: {RUBRIC_DESCRIPTIONS.get(id_, 'No description available.')}"
-        for id_ in ids_to_check
+    return (
+        "You are an expert Python documentation reviewer.\n"
+        "Task: assess a README against requested rubric items.\n\n"
+        "OUTPUT: TOML ONLY. No prose, no markdown fences, no JSON, no schema echos.\n"
+        "TOML schema to follow EXACTLY:\n"
+        "[meta]\n"
+        "version = 1\n"
+        'note = "status in {pass, fail, na}; advice = one short sentence."\n\n'
+        "[[rubric]]\n"
+        'id = "RUBRIC_ID"\n'
+        'status = "pass"\n'
+        'advice = "One-sentence recommendation or confirmation."\n'
+        "\n"
+        "Provide one [[rubric]] table per requested item. Use status='na' when not applicable."
     )
 
-    return f"""
-Please evaluate the following README.md file.
 
-README CONTENT:
----
-{readme_content}
----
+def _format_rubric_descriptions(ids: Sequence[str]) -> str:
+    return "\n".join(
+        f"- {rid}: {RUBRIC_DESCRIPTIONS.get(rid, 'No description.')}" for rid in ids
+    )
 
-RUBRIC ITEMS TO ASSESS:
-{descriptions}
 
-Provide your evaluation as a JSON array of objects.
-"""
+def _construct_user_prompt(
+    readme_content: str, ids_to_check: Sequence[str], forbid_schema_words: bool = False
+) -> str:
+    # To counter schema-echo, we optionally “forbid” schema terms on retry.
+    forbid = ""
+    if forbid_schema_words:
+        forbid = (
+            "\nDO NOT output any JSON, JSON-Schema, or fields like: properties, type, enum, required, title.\n"
+            "Start your output with: [meta]\n"
+        )
+    return (
+        "Evaluate ONLY the rubric items listed below against the README content.\n\n"
+        "RUBRIC ITEMS:\n"
+        f"{_format_rubric_descriptions(ids_to_check)}\n\n"
+        "README CONTENT (verbatim):\n"
+        "-----\n"
+        f"{readme_content}\n"
+        "-----\n\n"
+        "Respond in TOML exactly as specified above. No extra commentary." + forbid
+    )
+
+
+_CODE_FENCE_RE = re.compile(r"^```(?:toml)?\s*(.*?)\s*```$", re.DOTALL | re.IGNORECASE)
+
+
+def _strip_code_fences(s: str) -> str:
+    m = _CODE_FENCE_RE.search(s.strip())
+    return m.group(1) if m else s
+
+
+def _looks_like_schema_echo(text: str) -> bool:
+    t = text.lower()
+    # Heuristic: typical JSON-schema tokens that indicate echoing the schema.
+    bad_markers = (
+        '"properties"',
+        '"type"',
+        '"enum"',
+        '"required"',
+        '"title": "rubricitem"',
+    )
+    return any(k in t for k in bad_markers)
+
+
+def _parse_toml_items(toml_text: str) -> List[RubricItem]:
+    data = _tomli.loads(toml_text)
+    blocks = data.get("rubric", [])
+    if not isinstance(blocks, list):
+        raise ValueError("TOML parse error: [[rubric]] must be an array of tables.")
+    out: List[RubricItem] = []
+    for b in blocks:
+        out.append(
+            RubricItem.model_validate(
+                {
+                    "id": b.get("id"),
+                    "status": b.get("status"),
+                    "advice": b.get("advice"),
+                }
+            )
+        )
+    return out
+
+
+# --- Public API (unchanged signature) ---
 
 
 def assess_readme(readme_content: str, ids_to_check: List[str]) -> List[RubricItem]:
-    """
-    Assesses a README file against a list of rubric items using an LLM.
-
-    Args:
-        readme_content: The full text content of the README file.
-        ids_to_check: A list of rubric item IDs to be evaluated.
-
-    Returns:
-        A list of RubricItem objects with the LLM's assessment.
-    """
     if not config.settings.llm.api_key:
         raise ValueError("LLM API key is not configured.")
     if not ids_to_check:
-        logging.info("No new rubric items to check. Skipping LLM call.")
+        logging.info("No rubric items to check. Skipping LLM call.")
         return []
 
     client = OpenAI(
-        base_url=config.settings.llm.base_url,
-        api_key=config.settings.llm.api_key,
+        base_url=config.settings.llm.base_url, api_key=config.settings.llm.api_key
     )
 
-    system_prompt = _construct_system_prompt()
+    sys_prompt = _construct_system_prompt()
     user_prompt = _construct_user_prompt(readme_content, ids_to_check)
 
-    logging.info(f"Sending {len(ids_to_check)} items to LLM for assessment...")
-    try:
-        response = client.chat.completions.create(
+    # Single request. High max_tokens to avoid truncation; configurable.
+    max_tokens = getattr(config.settings.llm, "max_tokens", 8000)
+
+    def _call(prompt: str):
+        return client.chat.completions.create(
             model=config.settings.llm.model,
-            response_format={"type": "json_object"},
+            # IMPORTANT: do not set response_format=json_object; we want raw text.
             messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_prompt},
+                {"role": "system", "content": sys_prompt},
+                {"role": "user", "content": prompt},
             ],
-            temperature=0.1,  # Low temperature for deterministic results
+            temperature=0,
+            top_p=1,
+            max_tokens=max_tokens,
         )
-        content = response.choices[0].message.content
+
+    try:
+        resp = _call(user_prompt)
+        content = (resp.choices[0].message.content or "").strip()
         if not content:
-            raise ValueError("LLM returned an empty response.")
+            raise ValueError("LLM returned empty content.")
 
-        # The schema asks for an array, but some models wrap it in a root key.
-        # We handle this by trying to parse the content as-is, and if that fails,
-        # we look for a root key that contains an array.
-        try:
-            parsed_json = json.loads(content)
-        except json.JSONDecodeError:
-            logging.error(f"Failed to decode LLM JSON response: {content}")
-            return []
+        text = _strip_code_fences(content)
+        if _looks_like_schema_echo(text):
+            # One retry with stricter anti-echo instruction.
+            logging.warning(
+                "Model echoed a schema. Retrying once with stricter TOML instruction."
+            )
+            retry_prompt = _construct_user_prompt(
+                readme_content, ids_to_check, forbid_schema_words=True
+            )
+            resp = _call(retry_prompt)
+            content = (resp.choices[0].message.content or "").strip()
+            if not content:
+                raise ValueError("LLM returned empty content on retry.")
+            text = _strip_code_fences(content)
 
-        if isinstance(parsed_json, list):
-            results_list = parsed_json
-        elif isinstance(parsed_json, dict) and len(parsed_json) == 1:
-            key, value = next(iter(parsed_json.items()))
-            if isinstance(value, list):
-                logging.warning(f"Response was wrapped in a '{key}' key. Unwrapping.")
-                results_list = value
-            else:
-                raise ValueError("LLM response is a dict but not a simple wrapper.")
-        else:
-            raise ValueError("LLM response is not a JSON array or a simple wrapper.")
+        if "[[rubric]]" not in text and "id" not in text:
+            raise ValueError("Response does not look like TOML rubric output.")
 
-        return [RubricItem.model_validate(item) for item in results_list]
+        items = _parse_toml_items(text)
+        # Only return requested IDs
+        wanted = set(ids_to_check)
+        return [it for it in items if it.id in wanted]
 
     except OpenAIError as e:
-        logging.error(f"An API error occurred: {e}")
+        logging.error(f"LLM API error: {e}")
         return []
-    except (ValueError, KeyError, json.JSONDecodeError) as e:
-        logging.error(f"Failed to parse or validate LLM response: {e}")
+    except Exception as e:
+        logging.error(f"TOML parsing/validation error: {e}")
         return []

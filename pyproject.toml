@@ -1,6 +1,6 @@
 [project]
 name = "troml-dev-status"
-version = "0.4.3"
+version = "0.5.0"
 keywords = ["development status","trove classifiers","python packaging"]
 description = "Objectively infer PyPI Development Status classifiers from code and release artifacts."
 readme = "README.md"
@@ -131,6 +131,8 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.sdist]
 include = [
+    "src/readme_rater/**/*.py",
+    "src/readme_rater/py.typed",
     "src/troml_dev_status/**/*.py",
     "src/troml_dev_status/py.typed",
     "/README.md", "LICENSE",
@@ -144,6 +146,8 @@ exclude = [
 [tool.hatch.build.targets.wheel]
 packages = ["src/troml_dev_status"]
 include = [
+    "src/readme_rater/**/*.py",
+    "src/readme_rater/py.typed",
     "src/troml_dev_status/**/*.py",
     "src/troml_dev_status/py.typed",
     "/README.md", "LICENSE",

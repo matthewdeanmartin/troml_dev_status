@@ -3275,7 +3275,7 @@ wheels = [
 
 [[package]]
 name = "troml-dev-status"
-version = "0.4.3"
+version = "0.5.0"
 source = { editable = "." }
 dependencies = [
     { name = "httpx", extra = ["http2"] },

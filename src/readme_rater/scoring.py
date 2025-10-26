@@ -1,11 +1,12 @@
+# readme_rater/scoring.py
 """
 Implements the scoring logic and qualitative labeling from PEP 8001.
 """
 
 from __future__ import annotations
 
-from . import rubric
-from .models import RubricItem
+from readme_rater import rubric
+from readme_rater.models import RubricItem
 
 
 def compute_score(rubric_results: list[RubricItem]) -> int:

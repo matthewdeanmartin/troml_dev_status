@@ -87,15 +87,6 @@ def iter_repo_files(repo_path: Path, follow_symlinks: bool = False) -> Iterator[
 
 def _iter_files(root: Path, exts: tuple[str, ...] = _CODE_EXTS) -> Iterable[Path]:
     yield from iter_files2(repo_path=root, include_exts=set(exts))
-    # for p in root.rglob("*"):
-    #     if p.is_file() and p.suffix in exts:
-    #         # Skip typical vendor & virtual env dirs early
-    #         if any(
-    #             part in {".venv", "venv", "env", "site-packages", ".tox", ".git"}
-    #             for part in p.parts
-    #         ):
-    #             continue
-    #         yield p
 
 
 _VENV_NAME_RE = re.compile(r"^(?:\.?venv|\.?env)(?:[-._]?\w+)*$", re.IGNORECASE)

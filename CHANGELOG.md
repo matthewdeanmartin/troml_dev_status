@@ -12,7 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed for any bug fixes.
 - Security in case of vulnerabilities.
 
-## [0.5.0] - 9999-1-1
+## [0.5.0] - 2025-10-25
 
 ### Fixed
 
@@ -21,7 +21,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Readme Rater is an LLM-based rater. Opt-in, has no effect unless a key is present.
-- Completeness Checker is an LLM-base checker. Opt-in, has no effect unless a key is present.
 
 ### Removed
 

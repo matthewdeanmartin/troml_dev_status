@@ -12,7 +12,7 @@ __all__ = [
 ]
 
 __title__ = "troml-dev-status"
-__version__ = "0.4.3"
+__version__ = "0.5.0"
 __keywords__ = ["development status", "trove classifiers", "python packaging"]
 __description__ = "Objectively infer PyPI Development Status classifiers from code and release artifacts."
 __readme__ = "README.md"

@@ -1,3 +1,4 @@
+# readme_rater/models.py
 """Data models for rubric items, ratings, and application state."""
 
 from __future__ import annotations

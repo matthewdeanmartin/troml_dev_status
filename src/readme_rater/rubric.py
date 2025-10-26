@@ -1,3 +1,4 @@
+# readme_rater/rubric.py
 """Defines the evaluation rubric items from PEP 8001."""
 
 # Core items are essential for a good README.
