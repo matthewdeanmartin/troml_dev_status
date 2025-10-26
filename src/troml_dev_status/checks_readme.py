@@ -13,10 +13,11 @@ _FULL_REFRESH = os.getenv("READMERATER_FULL_REFRESH", "0") == "1"
 _STRICT = os.getenv("READMERATER_STRICT", "1") == "1"
 
 
-def check_q8_readme_complete(repo_path: Path) -> CheckResult:
+def check_q8_readme_complete(repo_path: Path, *, use_ai: bool) -> CheckResult:
     """
     Evaluate README quality via readme_rater.
     Pass if overall_score_numeric >= _MIN_SCORE.
+    If use_ai is False, this check will pass with a note if a README exists.
     """
     readme_path = next(repo_path.glob("README*"), None)
     if not (readme_path and readme_path.is_file()):
@@ -25,6 +26,12 @@ def check_q8_readme_complete(repo_path: Path) -> CheckResult:
     content = readme_path.read_text(encoding="utf-8").strip()
     if not content:
         return CheckResult(passed=False, evidence="README is empty.")
+
+    if not use_ai:
+        return CheckResult(
+            passed=True,
+            evidence="README exists. AI-based rating is disabled via configuration.",
+        )
 
     try:
         rating = rate_readme(content, full_refresh=_FULL_REFRESH)

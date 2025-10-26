@@ -51,6 +51,7 @@ from troml_dev_status.checks_completeness import (
     check_cmpl3_placeholder_pass_ratio,
     check_cmpl4_stub_files_ratio,
 )
+from troml_dev_status.config import load_config
 from troml_dev_status.models import CheckResult, EvidenceReport, Metrics
 
 logger = logging.getLogger(__name__)
@@ -59,11 +60,11 @@ logger = logging.getLogger(__name__)
 def run_analysis(repo_path: Path, project_name: str) -> EvidenceReport:
     """Orchestrates the analysis and classification process."""
 
-    # --- Analysis Phase ---
+    # --- Config and Analysis Phase ---
+    config = load_config(repo_path)
     pypi_data = pypi.get_project_data(project_name)
     sorted_versions = pypi.get_sorted_versions(pypi_data) if pypi_data else []
     latest_version = sorted_versions[0] if sorted_versions else None
-    analysis_mode = filesystem.get_analysis_mode(repo_path)
 
     # --- Checks Execution Phase ---
     results: Dict[str, CheckResult] = {}
@@ -100,7 +101,7 @@ def run_analysis(repo_path: Path, project_name: str) -> EvidenceReport:
         evidence="Checked for CHANGELOG.md",
     )
 
-    results["Q8"] = check_q8_readme_complete(repo_path)
+    results["Q8"] = check_q8_readme_complete(repo_path, use_ai=config.use_ai)
 
     results["Q9"] = check_q9_changelog_validates(repo_path)
 
@@ -114,7 +115,7 @@ def run_analysis(repo_path: Path, project_name: str) -> EvidenceReport:
         evidence="Checked for security files",
     )
     results["C2"] = check_c2_code_attestations(project_name)
-    results["C3"] = check_c3_minimal_pin_sanity(repo_path, analysis_mode)
+    results["C3"] = check_c3_minimal_pin_sanity(repo_path, config.mode)
     results["C4"] = check_c4_repro_inputs(repo_path)
 
     # M-Checks (Maintenance)

@@ -11,7 +11,6 @@ from troml_dev_status.analysis.filesystem import (
     count_source_modules,
     count_test_files,
     find_src_dir,
-    get_analysis_mode,
     get_ci_config_files,
     get_project_dependencies,
     get_project_name,
@@ -53,49 +52,6 @@ def test_get_project_name_reads_name(tmp_path: Path) -> None:
 def test_get_project_name_bad_toml_returns_none(tmp_path: Path) -> None:
     write(tmp_path, "pyproject.toml", "[project\nname = 'oops'")
     assert get_project_name(tmp_path) is None
-
-
-# ----------------------------
-# get_analysis_mode
-# ----------------------------
-
-
-def test_get_analysis_mode_defaults_when_missing_file(tmp_path: Path) -> None:
-    assert get_analysis_mode(tmp_path) == "library"
-
-
-@pytest.mark.parametrize("mode", ["library", "application"])
-def test_get_analysis_mode_valid_values(tmp_path: Path, mode: str) -> None:
-    write(
-        tmp_path,
-        "pyproject.toml",
-        textwrap.dedent(
-            f"""
-            [tool."troml-dev-status"]
-            mode = "{mode}"
-            """
-        ),
-    )
-    assert get_analysis_mode(tmp_path) == mode
-
-
-def test_get_analysis_mode_invalid_value_falls_back_to_library(tmp_path: Path) -> None:
-    write(
-        tmp_path,
-        "pyproject.toml",
-        textwrap.dedent(
-            """
-            [tool."troml-dev-status"]
-            mode = "weird"
-            """
-        ),
-    )
-    assert get_analysis_mode(tmp_path) == "library"
-
-
-def test_get_analysis_mode_bad_toml_returns_library(tmp_path: Path) -> None:
-    write(tmp_path, "pyproject.toml", "[tool.'troml-dev-status']\nmode = ")
-    assert get_analysis_mode(tmp_path) == "library"
 
 
 # ----------------------------

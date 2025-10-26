@@ -447,22 +447,22 @@ def get_project_dependencies(
     return None
 
 
-def get_analysis_mode(repo_path: Path, *, venv_mode: bool = False) -> str:
-    """
-    Parse pyproject.toml to find the analysis mode from [tool.troml-dev-status].
-    There is no equivalent for this in installed metadata; if files are missing,
-    fall back to DEFAULT_ANALYSIS_MODE.
-    """
-    if os.environ.get("TROML_DEV_STATUS_VENV_MODE"):
-        pass
-    doc = load_pyproject_toml(repo_path)
-    if not doc:
-        return DEFAULT_ANALYSIS_MODE
-
-    tool_config = doc.get("tool", {}).get("troml-dev-status", {})  # type: ignore
-    mode = tool_config.get("mode", DEFAULT_ANALYSIS_MODE)
-
-    return mode if mode in VALID_ANALYSIS_MODES else DEFAULT_ANALYSIS_MODE
+# def get_analysis_mode(repo_path: Path, *, venv_mode: bool = False) -> str:
+#     """
+#     Parse pyproject.toml to find the analysis mode from [tool.troml-dev-status].
+#     There is no equivalent for this in installed metadata; if files are missing,
+#     fall back to DEFAULT_ANALYSIS_MODE.
+#     """
+#     if os.environ.get("TROML_DEV_STATUS_VENV_MODE"):
+#         pass
+#     doc = load_pyproject_toml(repo_path)
+#     if not doc:
+#         return DEFAULT_ANALYSIS_MODE
+#
+#     tool_config = doc.get("tool", {}).get("troml-dev-status", {})  # type: ignore
+#     mode = tool_config.get("mode", DEFAULT_ANALYSIS_MODE)
+#
+#     return mode if mode in VALID_ANALYSIS_MODES else DEFAULT_ANALYSIS_MODE
 
 
 # --- Filesystem Analysis -------------------------------------------------------

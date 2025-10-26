@@ -8,6 +8,7 @@ import sys
 from pathlib import Path
 from typing import Sequence
 
+import dotenv
 from rich.console import Console
 
 from troml_dev_status.__about__ import __version__
@@ -23,6 +24,7 @@ from troml_dev_status.utils.setup_logging import configure_logging
 logger = logging.getLogger(__name__)
 
 # ---------------- helpers ----------------
+dotenv.load_dotenv()
 
 
 def _require_git_repo(console: Console, repo_path: Path) -> bool:

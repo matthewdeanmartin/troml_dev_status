@@ -291,8 +291,8 @@ def check_q6_docs_present(repo_path: Path) -> tuple[CheckResult, int]:
     )
 
 
-def check_q8_readme_complete(repo_path: Path) -> CheckResult:
-    return checks_readme.check_q8_readme_complete(repo_path)
+def check_q8_readme_complete(repo_path: Path, use_ai: bool) -> CheckResult:
+    return checks_readme.check_q8_readme_complete(repo_path, use_ai=use_ai)
 
 
 def check_q9_changelog_validates(repo_path: Path) -> CheckResult:
