@@ -4,8 +4,7 @@ import os
 from pathlib import Path
 
 # import from your vendored/package install of readme_rater
-from readme_rater.rater import rate_readme
-from readme_rater import rubric
+from readme_rater.rater import rate_readme, rubric
 from troml_dev_status.models import CheckResult
 
 _MIN_SCORE = int(os.getenv("READMERATER_MIN_SCORE", "70"))
