@@ -21,7 +21,8 @@ from troml_dev_status.analysis.filesystem import (
     analyze_type_hint_coverage,
     count_source_modules,
     count_test_files,
-    find_src_dir,
+    discover_python_sources,
+    find_top_level_package_dirs,
     get_ci_config_files,
     get_project_dependencies,
 )
@@ -44,6 +45,13 @@ logger = logging.getLogger(__name__)
 
 
 # --- Check Functions ---
+
+
+def _rel_path(repo_path: Path, path: Path) -> str:
+    try:
+        return str(path.relative_to(repo_path))
+    except ValueError:
+        return str(path)
 
 
 def check_r1_published_at_least_once(pypi_data: dict | None) -> CheckResult:
@@ -119,29 +127,48 @@ def check_q3_tests_present(repo_path: Path) -> CheckResult:
 
 
 def check_q4_test_file_ratio(repo_path: Path) -> CheckResult:
-    src_dir = find_src_dir(repo_path)
+    discovery = discover_python_sources(repo_path)
+    src_dir = discovery.primary_source_dir
     if not src_dir:
         return CheckResult(
-            passed=False, evidence="Could not determine source directory."
+            passed=False,
+            evidence=f"Could not determine source directory. {discovery.describe(repo_path)}",
         )
 
     num_tests = count_test_files(repo_path)
     num_src = count_source_modules(src_dir)
+    source_scope = _rel_path(repo_path, src_dir)
 
     if num_src == 0:
         return CheckResult(
-            passed=False, evidence="No source modules found to calculate ratio."
+            passed=False,
+            evidence=(
+                f"No source modules found under '{source_scope}'. "
+                f"{discovery.describe(repo_path)}"
+            ),
         )
 
     ratio = num_tests / num_src
+    logger.debug(
+        "Q4 source ratio: tests=%s source_modules=%s scope=%s",
+        num_tests,
+        num_src,
+        source_scope,
+    )
     if ratio >= 0.20:
         return CheckResult(
             passed=True,
-            evidence=f"Test/source ratio is {ratio:.2f} ({num_tests}/{num_src}), >= 0.20.",
+            evidence=(
+                f"Test/source ratio is {ratio:.2f} ({num_tests}/{num_src}) under "
+                f"'{source_scope}', >= 0.20."
+            ),
         )
     return CheckResult(
         passed=False,
-        evidence=f"Test/source ratio is {ratio:.2f} ({num_tests}/{num_src}), < 0.20.",
+        evidence=(
+            f"Test/source ratio is {ratio:.2f} ({num_tests}/{num_src}) under "
+            f"'{source_scope}', < 0.20."
+        ),
     )
 
 
@@ -150,27 +177,6 @@ def _env_or_param_venv_mode(venv_mode: bool) -> bool:
     if os.environ.get("TROML_DEV_STATUS_VENV_MODE"):
         return True
     return venv_mode
-
-
-def find_top_level_package_dirs(
-    repo_path: Path, *, venv_mode: bool = False
-) -> list[Path]:
-    """
-    Return all immediate child directories that look like top-level Python packages:
-    - If 'src/' exists, search under 'src/' (e.g., src/a, src/b).
-    - Else, search under repo root (e.g., a/).
-    A directory is a package if it contains '__init__.py'.
-    """
-    venv_mode = _env_or_param_venv_mode(venv_mode)
-    # venv_mode currently unused in discovery; keep hook for future logic parity.
-    base = repo_path / "src" if (repo_path / "src").is_dir() else repo_path
-
-    packages: list[Path] = []
-    if base.is_dir():
-        for child in base.iterdir():
-            if child.is_dir() and (child / "__init__.py").exists():
-                packages.append(child)
-    return packages
 
 
 def _aggregate_coverage_over_packages(pkg_dirs: list[Path]) -> tuple[float, int]:
@@ -203,11 +209,15 @@ def check_q5_type_hints_shipped(repo_path: Path) -> tuple[CheckResult, float, in
     - Aggregate type-hint coverage across all detected packages.
     """
     pkgs = find_top_level_package_dirs(repo_path)
+    discovery = discover_python_sources(repo_path)
     if not pkgs:
         return (
             CheckResult(
                 passed=False,
-                evidence="No top-level packages found (looked for dirs with __init__.py under src/ or repo root).",
+                evidence=(
+                    "No top-level packages found for type-hint analysis. "
+                    f"{discovery.describe(repo_path)}"
+                ),
             ),
             0.0,
             0,
@@ -218,7 +228,11 @@ def check_q5_type_hints_shipped(repo_path: Path) -> tuple[CheckResult, float, in
         return (
             CheckResult(
                 passed=False,
-                evidence=f"py.typed required in packages: {', '.join(missing)}.",
+                evidence=(
+                    "py.typed required in packages: "
+                    f"{', '.join(missing)} "
+                    f"(selected packages: {', '.join(_rel_path(repo_path, p) for p in pkgs)})."
+                ),
             ),
             0.0,
             0,
@@ -230,14 +244,27 @@ def check_q5_type_hints_shipped(repo_path: Path) -> tuple[CheckResult, float, in
         return (
             CheckResult(
                 passed=False,
-                evidence="No public functions/methods found in detected packages.",
+                evidence=(
+                    "No public functions/methods found in detected packages: "
+                    f"{', '.join(_rel_path(repo_path, p) for p in pkgs)}."
+                ),
             ),
             0.0,
             0,
         )
 
     passed = coverage >= 70.0
-    evidence = f"{coverage:.1f}% of {total_symbols} public symbols are annotated across {len(pkgs)} package(s): {', '.join(p.name for p in pkgs)}."
+    package_list = ", ".join(_rel_path(repo_path, p) for p in pkgs)
+    logger.debug(
+        "Q5 type hints: coverage=%.1f total_symbols=%s packages=%s",
+        coverage,
+        total_symbols,
+        package_list,
+    )
+    evidence = (
+        f"{coverage:.1f}% of {total_symbols} public symbols are annotated across "
+        f"{len(pkgs)} package(s): {package_list}."
+    )
     return (
         CheckResult(passed=passed, evidence=evidence),
         coverage,
@@ -345,16 +372,21 @@ def check_m1_project_age(pypi_data: dict) -> CheckResult:
 
 
 def check_m2_code_motion(repo_path: Path, months: int) -> CheckResult:
-    src_dir_path = find_src_dir(repo_path)
+    discovery = discover_python_sources(repo_path)
+    src_dir_path = discovery.primary_source_dir
     if not src_dir_path:
-        return CheckResult(passed=False, evidence="Could not find source directory.")
+        return CheckResult(
+            passed=False,
+            evidence=f"Could not find source directory. {discovery.describe(repo_path)}",
+        )
 
     src_dir_rel_path = src_dir_path.relative_to(repo_path)
     last_commit = get_latest_commit_date(repo_path, sub_path=str(src_dir_rel_path))
 
     if not last_commit:
         return CheckResult(
-            passed=False, evidence="No commits found in source directory."
+            passed=False,
+            evidence=f"No commits found in source directory '{src_dir_rel_path}'.",
         )
 
     age = datetime.now(timezone.utc) - last_commit
@@ -388,7 +420,7 @@ def check_c3_minimal_pin_sanity(repo_path: Path, mode: str) -> CheckResult:
     """
     Checks runtime dependencies for minimal pinning.
     - 'library' mode (PEP default): requires at least a version bound (e.g., >=). Bare names fail.
-    - 'application' mode: requires strict '==' pinning for reproducibility.
+    - 'application' mode: requires dependencies to have some version constraint. Bare names fail.
     """
     dependencies = get_project_dependencies(repo_path)
 
@@ -415,10 +447,9 @@ def check_c3_minimal_pin_sanity(repo_path: Path, mode: str) -> CheckResult:
                 if not req.specifier:
                     failed_deps.append(dep_string)
             elif mode == "application":
-                # Stricter logic: Fail if not pinned with '=='
-                if len(req.specifier) != 1 or next(
-                    iter(req.specifier)
-                ).operator not in ("==", "<=", "<", ">=", ">"):
+                # Application mode still requires a version constraint, but any
+                # non-empty specifier set counts as pinned enough for this check.
+                if not req.specifier:
                     failed_deps.append(dep_string)
         except InvalidRequirement:
             # If the syntax is invalid, it's a failure.
@@ -432,7 +463,7 @@ def check_c3_minimal_pin_sanity(repo_path: Path, mode: str) -> CheckResult:
         # application mode
         return CheckResult(
             passed=True,
-            evidence="All dependencies are pinned with '==' or '<' or '>' or combinations.",
+            evidence="All dependencies include at least one version constraint.",
         )
     if mode == "library":
         return CheckResult(
@@ -442,7 +473,7 @@ def check_c3_minimal_pin_sanity(repo_path: Path, mode: str) -> CheckResult:
     # application mode
     return CheckResult(
         passed=False,
-        evidence=f"Found {len(failed_deps)} not strictly pinned somehow: {', '.join(failed_deps)}.",
+        evidence=f"Found {len(failed_deps)} unconstrained dependencies: {', '.join(failed_deps)}.",
     )
 
 
@@ -658,19 +689,33 @@ def check_s1_all_exports(repo_path: Path) -> CheckResult:
     """
     Check if any module in the src dir defines __all__.
     """
-    src_dir_path = find_src_dir(repo_path)
+    discovery = discover_python_sources(repo_path)
+    src_dir_path = discovery.primary_source_dir
     if not src_dir_path:
-        return CheckResult(passed=False, evidence="Could not find source directory.")
+        return CheckResult(
+            passed=False,
+            evidence=f"Could not find source directory. {discovery.describe(repo_path)}",
+        )
 
     py_files = list(src_dir_path.rglob("*.py"))
     if not py_files:
         return CheckResult(
-            passed=False, evidence="No Python files in source directory."
+            passed=False,
+            evidence=(
+                f"No Python files in source directory '{_rel_path(repo_path, src_dir_path)}'. "
+                f"{discovery.describe(repo_path)}"
+            ),
         )
 
     files_with_all = [
         str(f.relative_to(repo_path)) for f in py_files if has_all_exports(f)
     ]
+    logger.debug(
+        "S1 __all__ check: files=%s scope=%s matches=%s",
+        len(py_files),
+        _rel_path(repo_path, src_dir_path),
+        files_with_all,
+    )
 
     if files_with_all:
         return CheckResult(

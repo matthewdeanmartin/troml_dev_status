@@ -19,6 +19,8 @@ import configparser
 import logging
 import os
 import re
+from dataclasses import dataclass
+from functools import lru_cache
 from pathlib import Path
 from typing import Any, Iterable, Optional
 
@@ -48,6 +50,61 @@ logger = logging.getLogger(__name__)
 DEV_STATUS_PREFIX = "Development Status :: "
 VALID_ANALYSIS_MODES = ["library", "application"]
 DEFAULT_ANALYSIS_MODE = "library"
+
+
+@dataclass(frozen=True)
+class SourceDiscovery:
+    """Shared source-discovery result for source-sensitive checks."""
+
+    bases: tuple[Path, ...]
+    candidate_names: tuple[str, ...]
+    named_dirs: tuple[Path, ...]
+    matching_package_dirs: tuple[Path, ...]
+    fallback_package_dirs: tuple[Path, ...]
+    named_module_files: tuple[Path, ...]
+
+    @property
+    def package_dirs(self) -> tuple[Path, ...]:
+        return (
+            self.matching_package_dirs
+            if self.matching_package_dirs
+            else self.fallback_package_dirs
+        )
+
+    @property
+    def primary_source_dir(self) -> Path | None:
+        if self.package_dirs:
+            return self.package_dirs[0]
+        if self.named_dirs:
+            return self.named_dirs[0]
+        for base in self.bases:
+            if base.name == "src":
+                return base
+        if self.fallback_package_dirs:
+            return self.fallback_package_dirs[0]
+        if self.named_module_files:
+            return self.named_module_files[0].parent
+        return None
+
+    def describe(self, repo_path: Path) -> str:
+        def _rel(path: Path) -> str:
+            try:
+                return str(path.relative_to(repo_path))
+            except ValueError:
+                return str(path)
+
+        bases = ", ".join(_rel(path) for path in self.bases) or "<none>"
+        candidates = ", ".join(self.candidate_names) or "<none>"
+        named_dirs = ", ".join(_rel(path) for path in self.named_dirs) or "<none>"
+        packages = ", ".join(_rel(path) for path in self.package_dirs) or "<none>"
+        modules = ", ".join(_rel(path) for path in self.named_module_files) or "<none>"
+        return (
+            f"Searched bases: {bases}. "
+            f"Candidate import names: {candidates}. "
+            f"Matching directories: {named_dirs}. "
+            f"Selected packages: {packages}. "
+            f"Matching module files: {modules}."
+        )
 
 
 # --- Importlib.metadata helpers ------------------------------------------------
@@ -468,24 +525,100 @@ def get_project_dependencies(
 # --- Filesystem Analysis -------------------------------------------------------
 
 
-def find_src_dir(repo_path: Path, *, venv_mode: bool = False) -> Path | None:
-    """Finds the primary source directory (e.g., 'src/' or the package dir)."""
-    if os.environ.get("TROML_DEV_STATUS_VENV_MODE"):
-        venv_mode = True
+def _candidate_import_names(repo_path: Path, *, venv_mode: bool = False) -> tuple[str, ...]:
+    name = get_project_name(repo_path, venv_mode=venv_mode)
+    raw_candidates = [
+        name or "",
+        (name or "").replace("-", "_"),
+        repo_path.name,
+        repo_path.name.replace("-", "_"),
+    ]
+    candidates: list[str] = []
+    for candidate in raw_candidates:
+        candidate = candidate.strip()
+        if candidate and candidate not in candidates:
+            candidates.append(candidate)
+    return tuple(candidates)
+
+
+@lru_cache(maxsize=64)
+def _discover_python_sources_cached(
+    repo_path_str: str, venv_mode: bool
+) -> SourceDiscovery:
+    repo_path = Path(repo_path_str)
+    bases: list[Path] = []
     src_path = repo_path / "src"
     if src_path.is_dir():
-        return src_path
+        bases.append(src_path)
+    bases.append(repo_path)
 
-    name = get_project_name(repo_path, venv_mode=venv_mode)
-    if name:
-        # Handle both hyphenated and underscored package names
-        package_path_hyphen = repo_path / name
-        package_path_underscore = repo_path / name.replace("-", "_")
-        if package_path_hyphen.is_dir():
-            return package_path_hyphen
-        if package_path_underscore.is_dir():
-            return package_path_underscore
-    return None
+    candidate_names = _candidate_import_names(repo_path, venv_mode=venv_mode)
+
+    named_dirs: list[Path] = []
+    seen_named_dirs: set[Path] = set()
+    matching_packages: list[Path] = []
+    fallback_packages: list[Path] = []
+    seen_packages: set[Path] = set()
+    named_module_files: list[Path] = []
+    seen_modules: set[Path] = set()
+
+    for base in bases:
+        if not base.is_dir():
+            continue
+
+        for candidate in candidate_names:
+            named_dir = base / candidate
+            if named_dir.is_dir() and named_dir not in seen_named_dirs:
+                seen_named_dirs.add(named_dir)
+                named_dirs.append(named_dir)
+
+        for child in base.iterdir():
+            if child.is_dir() and (child / "__init__.py").exists():
+                if child in seen_packages:
+                    continue
+                seen_packages.add(child)
+                if child.name in candidate_names:
+                    matching_packages.append(child)
+                else:
+                    fallback_packages.append(child)
+
+        for candidate in candidate_names:
+            module_file = base / f"{candidate}.py"
+            if module_file.is_file() and module_file not in seen_modules:
+                seen_modules.add(module_file)
+                named_module_files.append(module_file)
+
+    discovery = SourceDiscovery(
+        bases=tuple(bases),
+        candidate_names=candidate_names,
+        named_dirs=tuple(named_dirs),
+        matching_package_dirs=tuple(matching_packages),
+        fallback_package_dirs=tuple(fallback_packages),
+        named_module_files=tuple(named_module_files),
+    )
+    logger.debug("Source discovery for %s: %s", repo_path, discovery.describe(repo_path))
+    return discovery
+
+
+def discover_python_sources(
+    repo_path: Path, *, venv_mode: bool = False
+) -> SourceDiscovery:
+    """Discover likely source packages/modules in both src/ and repo root."""
+    if os.environ.get("TROML_DEV_STATUS_VENV_MODE"):
+        venv_mode = True
+    return _discover_python_sources_cached(str(repo_path.resolve()), venv_mode)
+
+
+def find_top_level_package_dirs(
+    repo_path: Path, *, venv_mode: bool = False
+) -> list[Path]:
+    """Return likely top-level package directories for the analyzed project."""
+    return list(discover_python_sources(repo_path, venv_mode=venv_mode).package_dirs)
+
+
+def find_src_dir(repo_path: Path, *, venv_mode: bool = False) -> Path | None:
+    """Find the primary Python source directory or package for the project."""
+    return discover_python_sources(repo_path, venv_mode=venv_mode).primary_source_dir
 
 
 def count_test_files(repo_path: Path) -> int:

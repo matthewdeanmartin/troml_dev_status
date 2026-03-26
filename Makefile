@@ -7,6 +7,8 @@ PACKAGES := $(shell find src -mindepth 1 -maxdepth 1 -type d -not -name "__pycac
 # Get just the package names (e.g., "pkg1", "pkg2")
 PACKAGE_NAMES := $(notdir $(PACKAGES))
 
+PINACT_RUN ?= go run github.com/suzuki-shunsuke/pinact/v3/cmd/pinact@latest run
+
 # if you wrap everything in uv run, it runs slower.
 ifeq ($(origin VIRTUAL_ENV),undefined)
 	VENV := uv run
@@ -189,3 +191,7 @@ dog_food:
 	# bitrab
 	# pycodetags <command?>
 	# cli-tool-audit
+
+github-actions-upgrade:
+	@echo "[github-actions-upgrade]"
+	$(PINACT_RUN) -u

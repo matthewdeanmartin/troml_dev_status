@@ -10,7 +10,9 @@ from troml_dev_status.analysis.filesystem import (
     analyze_type_hint_coverage,
     count_source_modules,
     count_test_files,
+    discover_python_sources,
     find_src_dir,
+    find_top_level_package_dirs,
     get_ci_config_files,
     get_project_dependencies,
     get_project_name,
@@ -109,6 +111,31 @@ def test_find_src_dir_converts_dash_to_underscore(tmp_path: Path) -> None:
 def test_find_src_dir_returns_none_when_not_found(tmp_path: Path) -> None:
     write(tmp_path, "pyproject.toml", '[project]\nname = "abc"\n')
     assert find_src_dir(tmp_path) is None
+
+
+def test_find_src_dir_prefers_matching_root_package_over_unrelated_src(tmp_path: Path) -> None:
+    write(tmp_path, "pyproject.toml", '[project]\nname = "my-lib"\n')
+    write(tmp_path, "src/native_speedups/__init__.py", "")
+    write(tmp_path, "src/native_speedups/core.py", "VALUE = 1\n")
+    write(tmp_path, "my_lib/__init__.py", "")
+    write(tmp_path, "my_lib/api.py", "def run() -> int:\n    return 1\n")
+
+    discovery = discover_python_sources(tmp_path)
+
+    assert discovery.package_dirs == (tmp_path / "my_lib",)
+    assert find_src_dir(tmp_path) == tmp_path / "my_lib"
+
+
+def test_find_top_level_package_dirs_falls_back_to_all_packages_without_name_match(
+    tmp_path: Path,
+) -> None:
+    write(tmp_path, "pyproject.toml", '[project]\nname = "tooling"\n')
+    write(tmp_path, "src/alpha/__init__.py", "")
+    write(tmp_path, "src/beta/__init__.py", "")
+
+    packages = find_top_level_package_dirs(tmp_path)
+
+    assert packages == [tmp_path / "src" / "alpha", tmp_path / "src" / "beta"]
 
 
 # ----------------------------

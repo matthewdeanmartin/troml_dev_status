@@ -62,6 +62,14 @@ def run_analysis(repo_path: Path, project_name: str) -> EvidenceReport:
 
     # --- Config and Analysis Phase ---
     config = load_config(repo_path)
+    source_discovery = filesystem.discover_python_sources(repo_path)
+    logger.debug(
+        "Starting analysis: repo=%s project=%s mode=%s",
+        repo_path,
+        project_name,
+        config.mode,
+    )
+    logger.debug("Source layout: %s", source_discovery.describe(repo_path))
     pypi_data = pypi.get_project_data(project_name)
     sorted_versions = pypi.get_sorted_versions(pypi_data) if pypi_data else []
     latest_version = sorted_versions[0] if sorted_versions else None

@@ -1,0 +1,2 @@
+- Use `uv run` for local commands in this repo unless you are already inside the managed virtual environment. The `Makefile` follows the same convention via `VENV := uv run`.
+- Prefer the existing commands from `Makefile` or direct `uv run ...` equivalents for validation.
