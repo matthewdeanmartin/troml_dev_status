@@ -708,7 +708,9 @@ def check_s1_all_exports(repo_path: Path) -> CheckResult:
         )
 
     files_with_all = [
-        str(f.relative_to(repo_path)) for f in py_files if has_all_exports(f)
+        _rel_path(repo_path, f).replace("/", "\\")
+        for f in py_files
+        if has_all_exports(f)
     ]
     logger.debug(
         "S1 __all__ check: files=%s scope=%s matches=%s",
