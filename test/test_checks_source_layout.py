@@ -29,7 +29,11 @@ def test_source_sensitive_checks_prefer_named_root_package_over_unrelated_src(
     write(tmp_path, "my_lib/py.typed", "")
     write(tmp_path, "my_lib/api.py", "def run() -> int:\n    return 1\n")
     for idx in range(10):
-        write(tmp_path, f"my_lib/mod_{idx}.py", f"def f_{idx}() -> int:\n    return {idx}\n")
+        write(
+            tmp_path,
+            f"my_lib/mod_{idx}.py",
+            f"def f_{idx}() -> int:\n    return {idx}\n",
+        )
 
     write(tmp_path, "tests/test_api.py", "def test_run():\n    assert True\n")
 
@@ -55,7 +59,7 @@ def test_c3_application_mode_accepts_exact_mistune_range_example(
         tmp_path,
         "pyproject.toml",
         (
-            '[project]\n'
+            "[project]\n"
             'name = "demo-app"\n'
             'dependencies = ["mistune>=2.0.0,<3.0.0"]\n'
         ),
@@ -75,7 +79,7 @@ def test_c3_application_mode_still_rejects_unconstrained_dependencies(
         tmp_path,
         "pyproject.toml",
         (
-            '[project]\n'
+            "[project]\n"
             'name = "demo-app"\n'
             'dependencies = ["mistune>=2.0.0,<3.0.0", "requests"]\n'
         ),
@@ -86,3 +90,37 @@ def test_c3_application_mode_still_rejects_unconstrained_dependencies(
     assert result.passed is False
     assert "unconstrained dependencies" in result.evidence
     assert "requests" in result.evidence
+
+
+def test_q5_reports_missing_top_level_packages(tmp_path: Path) -> None:
+    result, coverage, total_symbols = check_q5_type_hints_shipped(tmp_path)
+
+    assert result.passed is False
+    assert "No top-level packages found" in result.evidence
+    assert coverage == 0.0
+    assert total_symbols == 0
+
+
+def test_q5_requires_py_typed_in_detected_packages(tmp_path: Path) -> None:
+    write(tmp_path, "pyproject.toml", '[project]\nname = "demo-lib"\n')
+    write(tmp_path, "src/demo_lib/__init__.py", "")
+    write(tmp_path, "src/demo_lib/api.py", "def run() -> int:\n    return 1\n")
+
+    result, coverage, total_symbols = check_q5_type_hints_shipped(tmp_path)
+
+    assert result.passed is False
+    assert "py.typed required in packages" in result.evidence
+    assert "demo_lib" in result.evidence
+    assert coverage == 0.0
+    assert total_symbols == 0
+
+
+def test_s1_all_exports_fails_when_detected_package_has_no_all(tmp_path: Path) -> None:
+    write(tmp_path, "pyproject.toml", '[project]\nname = "demo-lib"\n')
+    write(tmp_path, "src/demo_lib/__init__.py", "")
+    write(tmp_path, "src/demo_lib/api.py", "def run() -> int:\n    return 1\n")
+
+    result = check_s1_all_exports(tmp_path)
+
+    assert result.passed is False
+    assert result.evidence == "No __all__ exports found in any module."

@@ -2,7 +2,7 @@
 
 This page details every check performed by the tool. Each check is a yes/no question derived from objective evidence. If a check is not applicable, it is counted as **failed**.
 
----
+______________________________________________________________________
 
 ## Release & Packaging
 
@@ -18,7 +18,7 @@ This page details every check performed by the tool. Each check is a yes/no ques
 
 **R6. Current Python coverage:** Declared support includes the **current-1** CPython minor release. (e.g., if 3.13 is current, the package must declare support for at least 3.12).
 
----
+______________________________________________________________________
 
 ## Quality (CI, Tests, Docs)
 
@@ -38,7 +38,7 @@ This page details every check performed by the tool. Each check is a yes/no ques
 
 **Q8. Docs quality scored:** The `README` has common sections, a high school readability score, badges, and code examples.
 
----
+______________________________________________________________________
 
 ## Completeness Metrics
 
@@ -48,9 +48,9 @@ This page details every check performed by the tool. Each check is a yes/no ques
 
 **Cmpl3. Placeholder `pass`:** Less than 5% of functions/methods consist only of a `pass` statement.
 
-**Cmpl4. Stub files:** Less than 10% of `.py` files are classified as stubs (e.g., <10 lines of meaningful code).
+**Cmpl4. Stub files:** Less than 10% of `.py` files are classified as stubs (e.g., \<10 lines of meaningful code).
 
----
+______________________________________________________________________
 
 ## API & Deprecation
 
@@ -58,7 +58,7 @@ This page details every check performed by the tool. Each check is a yes/no ques
 
 **D1. Deprecation policy evidence:** The `CHANGELOG` contains "Deprecated" or "Removed" sections, **OR** the code uses `warnings.warn(..., DeprecationWarning)`.
 
----
+______________________________________________________________________
 
 ## Security & Supply Chain
 
@@ -70,7 +70,7 @@ This page details every check performed by the tool. Each check is a yes/no ques
 
 **C4. Repro inputs:** A lockfile for reproducible development is present (e.g., `uv.lock`, `poetry.lock`, `requirements*.txt`).
 
----
+______________________________________________________________________
 
 ## Maintenance
 

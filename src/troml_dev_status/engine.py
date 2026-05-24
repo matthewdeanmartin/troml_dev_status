@@ -274,6 +274,7 @@ def determine_status(
     """
     if os.environ.get("TROML_DEV_STATUS_VENV_MODE"):
         venv_mode = True
+    logger.debug("Determining status with latest_version=%s", latest_version)
     # --- Hard gate: "Unclassifiable" if never released ---
     if not results.get("R1", type("X", (), {"passed": False})()).passed:
         logger.debug("Hard gate: R1 failed or missing -> Planning")

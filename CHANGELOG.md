@@ -38,7 +38,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - NLP style README rating removed because it just didn't work
 
-
 ## [0.4.2] - 2025-10-01
 
 ### Fixed

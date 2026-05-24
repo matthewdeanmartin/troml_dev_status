@@ -3,6 +3,22 @@ import pytest
 from troml_dev_status.engine import determine_status
 from troml_dev_status.models import CheckResult, Metrics
 
+BADNESS_CHECKS = (
+    "Fail0",
+    "Fail1",
+    "Fail2",
+    "Fail3",
+    "Fail4",
+    "Fail5",
+    "Fail6",
+    "Fail7",
+    "Fail8",
+    "Fail9",
+    "Fail10",
+    "Fail11",
+    "Fail12",
+)
+
 
 def ck(passed: bool, evidence: str = "") -> CheckResult:
     return CheckResult(passed=passed, evidence=evidence)
@@ -64,21 +80,7 @@ def test_planning_when_release_but_low_completeness():
     results["R1"] = ck(True)  # has a release
     # Keep EPS low and completeness < 5
     # (leave everything else False)
-    for bad in {
-        "Fail0",
-        "Fail1",
-        "Fail2",
-        "Fail3",
-        "Fail4",
-        "Fail5",
-        "Fail6",
-        "Fail7",
-        "Fail8",
-        "Fail9",
-        "Fail10",
-        "Fail11",
-        "Fail12",
-    }:
+    for bad in BADNESS_CHECKS:
         results[bad] = ck(True)
     status, _ = determine_status(results, latest_version=None, metrics=Metrics())
     assert status == "Development Status :: 1 - Planning"
@@ -101,21 +103,7 @@ def test_pre_alpha_path():
     # Turn on a couple but keep below 10
     for k in ["Q1", "Q2", "Cmpl1", "Cmpl2", "Cmpl3", "Cmpl4"]:
         results[k] = ck(True)
-    for bad in {
-        "Fail0",
-        "Fail1",
-        "Fail2",
-        "Fail3",
-        "Fail4",
-        "Fail5",
-        "Fail6",
-        "Fail7",
-        "Fail8",
-        "Fail9",
-        "Fail10",
-        "Fail11",
-        "Fail12",
-    }:
+    for bad in BADNESS_CHECKS:
         results[bad] = ck(True)
     status, _ = determine_status(results, None, Metrics(), explain=True)
     assert status == "Development Status :: 2 - Pre-Alpha"
@@ -131,21 +119,7 @@ def test_alpha_path():
     # Flip a handful (still below 14)
     for k in ["Q1", "Q2", "Q3", "Q4", "Q6", "Q7", "R5", "R6", "S1"]:
         results[k] = ck(True)
-    for bad in {
-        "Fail0",
-        "Fail1",
-        "Fail2",
-        "Fail3",
-        "Fail4",
-        "Fail5",
-        "Fail6",
-        "Fail7",
-        "Fail8",
-        "Fail9",
-        "Fail10",
-        "Fail11",
-        "Fail12",
-    }:
+    for bad in BADNESS_CHECKS:
         results[bad] = ck(True)
     status, _ = determine_status(results, None, Metrics())
     assert status == "Development Status :: 3 - Alpha"
@@ -160,21 +134,7 @@ def test_beta_path():
     # Completeness < 16 — make sure at least one completeness check is False
     for k in ["C1", "C3", "C4", "Cmpl1", "Cmpl2", "Cmpl3", "Cmpl4"]:
         results[k] = ck(False)
-    for bad in {
-        "Fail0",
-        "Fail1",
-        "Fail2",
-        "Fail3",
-        "Fail4",
-        "Fail5",
-        "Fail6",
-        "Fail7",
-        "Fail8",
-        "Fail9",
-        "Fail10",
-        "Fail11",
-        "Fail12",
-    }:
+    for bad in BADNESS_CHECKS:
         results[bad] = ck(True)
     status, _ = determine_status(results, None, Metrics())
     assert status == "Development Status :: 4 - Beta"
@@ -194,21 +154,7 @@ def test_production_path():
     results["D1"] = ck(False)
     results["M1"] = ck(True)  # a few true, but not all
 
-    for bad in {
-        "Fail0",
-        "Fail1",
-        "Fail2",
-        "Fail3",
-        "Fail4",
-        "Fail5",
-        "Fail6",
-        "Fail7",
-        "Fail8",
-        "Fail9",
-        "Fail10",
-        "Fail11",
-        "Fail12",
-    }:
+    for bad in BADNESS_CHECKS:
         results[bad] = ck(True)
 
     status, _ = determine_status(results, None, Metrics())
@@ -228,21 +174,7 @@ def test_mature_path():
     results["D1"] = ck(True)
     results["M1"] = ck(True)
 
-    for bad in {
-        "Fail0",
-        "Fail1",
-        "Fail2",
-        "Fail3",
-        "Fail4",
-        "Fail5",
-        "Fail6",
-        "Fail7",
-        "Fail8",
-        "Fail9",
-        "Fail10",
-        "Fail11",
-        "Fail12",
-    }:
+    for bad in BADNESS_CHECKS:
         results[bad] = ck(True)
 
     status, _ = determine_status(results, None, Metrics())

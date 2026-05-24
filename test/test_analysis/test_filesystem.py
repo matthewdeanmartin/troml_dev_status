@@ -14,9 +14,11 @@ from troml_dev_status.analysis.filesystem import (
     find_src_dir,
     find_top_level_package_dirs,
     get_ci_config_files,
+    get_dev_status_classifier,
     get_project_dependencies,
     get_project_name,
     has_multi_python_in_ci,
+    set_dev_status_classifier,
 )
 
 
@@ -51,6 +53,34 @@ def test_get_project_name_reads_name(tmp_path: Path) -> None:
     assert get_project_name(tmp_path) == "cool-lib"
 
 
+def test_get_project_name_reads_poetry_name(tmp_path: Path) -> None:
+    write(
+        tmp_path,
+        "pyproject.toml",
+        textwrap.dedent(
+            """
+            [tool.poetry]
+            name = "poetry-lib"
+            """
+        ),
+    )
+    assert get_project_name(tmp_path) == "poetry-lib"
+
+
+def test_get_project_name_reads_setup_cfg_name(tmp_path: Path) -> None:
+    write(
+        tmp_path,
+        "setup.cfg",
+        textwrap.dedent(
+            """
+            [metadata]
+            name = cfg-lib
+            """
+        ),
+    )
+    assert get_project_name(tmp_path) == "cfg-lib"
+
+
 def test_get_project_name_bad_toml_returns_none(tmp_path: Path) -> None:
     write(tmp_path, "pyproject.toml", "[project\nname = 'oops'")
     assert get_project_name(tmp_path) is None
@@ -78,6 +108,43 @@ def test_get_project_dependencies_reads_list(tmp_path: Path) -> None:
         ),
     )
     assert get_project_dependencies(tmp_path) == ["requests>=2", "pydantic==2.*"]
+
+
+def test_get_project_dependencies_reads_poetry_dependencies(tmp_path: Path) -> None:
+    write(
+        tmp_path,
+        "pyproject.toml",
+        textwrap.dedent(
+            """
+            [tool.poetry]
+            name = "thing"
+
+            [tool.poetry.dependencies]
+            python = ">=3.11"
+            httpx = "^0.28"
+            rich = ">=13"
+            """
+        ),
+    )
+    assert get_project_dependencies(tmp_path) == ["httpx", "rich"]
+
+
+def test_get_project_dependencies_reads_setup_cfg_install_requires(
+    tmp_path: Path,
+) -> None:
+    write(
+        tmp_path,
+        "setup.cfg",
+        textwrap.dedent(
+            """
+            [options]
+            install_requires =
+                httpx>=0.28
+                rich
+            """
+        ),
+    )
+    assert get_project_dependencies(tmp_path) == ["httpx>=0.28", "rich"]
 
 
 def test_get_project_dependencies_bad_toml_returns_none(tmp_path: Path) -> None:
@@ -113,7 +180,9 @@ def test_find_src_dir_returns_none_when_not_found(tmp_path: Path) -> None:
     assert find_src_dir(tmp_path) is None
 
 
-def test_find_src_dir_prefers_matching_root_package_over_unrelated_src(tmp_path: Path) -> None:
+def test_find_src_dir_prefers_matching_root_package_over_unrelated_src(
+    tmp_path: Path,
+) -> None:
     write(tmp_path, "pyproject.toml", '[project]\nname = "my-lib"\n')
     write(tmp_path, "src/native_speedups/__init__.py", "")
     write(tmp_path, "src/native_speedups/core.py", "VALUE = 1\n")
@@ -193,6 +262,14 @@ def test_get_ci_config_files_finds_github_and_gitlab(tmp_path: Path) -> None:
     }
 
 
+def test_get_ci_config_files_includes_tox_ini(tmp_path: Path) -> None:
+    tox_ini = write(tmp_path, "tox.ini", "[tox]")
+
+    files = get_ci_config_files(tmp_path)
+
+    assert tox_ini in files
+
+
 def test_has_multi_python_in_ci_true_when_two_versions_present(tmp_path: Path) -> None:
     f1 = write(
         tmp_path,
@@ -264,6 +341,60 @@ def test_analyze_type_hint_coverage_handles_syntax_errors_and_empty(
     coverage, total = analyze_type_hint_coverage(src)
     assert total == 0
     assert coverage == 0.0
+
+
+def test_set_dev_status_classifier_updates_project_table(tmp_path: Path) -> None:
+    write(
+        tmp_path,
+        "pyproject.toml",
+        textwrap.dedent(
+            """
+            [project]
+            name = "cool-lib"
+            classifiers = [
+                "Development Status :: 3 - Alpha",
+                "Topic :: Utilities",
+            ]
+            """
+        ),
+    )
+
+    updated = set_dev_status_classifier(
+        tmp_path, "Development Status :: 5 - Production/Stable"
+    )
+    content = (tmp_path / "pyproject.toml").read_text(encoding="utf-8")
+
+    assert updated is True
+    assert get_dev_status_classifier(tmp_path) == "Development Status :: 5 - Production/Stable"
+    assert "Development Status :: 3 - Alpha" not in content
+    assert "Topic :: Utilities" in content
+
+
+def test_set_dev_status_classifier_updates_setup_cfg_when_pyproject_missing(
+    tmp_path: Path,
+) -> None:
+    write(
+        tmp_path,
+        "setup.cfg",
+        textwrap.dedent(
+            """
+            [metadata]
+            classifiers =
+                Development Status :: 3 - Alpha
+                Topic :: Utilities
+            """
+        ),
+    )
+
+    updated = set_dev_status_classifier(
+        tmp_path, "Development Status :: 4 - Beta"
+    )
+    content = (tmp_path / "setup.cfg").read_text(encoding="utf-8")
+
+    assert updated is True
+    assert get_dev_status_classifier(tmp_path) == "Development Status :: 4 - Beta"
+    assert "Development Status :: 3 - Alpha" not in content
+    assert "Topic :: Utilities" in content
 
 
 # ----------------------------

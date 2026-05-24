@@ -381,6 +381,13 @@ def set_dev_status_classifier(
     NOTE: We only *write* to files. venv_mode is accepted for API symmetry but
     does not write to installed metadata (not possible); it still writes files.
     """
+    if os.environ.get("TROML_DEV_STATUS_VENV_MODE"):
+        venv_mode = True
+    if venv_mode:
+        logger.debug(
+            "Persisting Development Status via project files while venv_mode=True."
+        )
+
     pyproject_path = repo_path / "pyproject.toml"
     setup_cfg_path = repo_path / "setup.cfg"
 
@@ -525,7 +532,9 @@ def get_project_dependencies(
 # --- Filesystem Analysis -------------------------------------------------------
 
 
-def _candidate_import_names(repo_path: Path, *, venv_mode: bool = False) -> tuple[str, ...]:
+def _candidate_import_names(
+    repo_path: Path, *, venv_mode: bool = False
+) -> tuple[str, ...]:
     name = get_project_name(repo_path, venv_mode=venv_mode)
     raw_candidates = [
         name or "",
@@ -596,7 +605,9 @@ def _discover_python_sources_cached(
         fallback_package_dirs=tuple(fallback_packages),
         named_module_files=tuple(named_module_files),
     )
-    logger.debug("Source discovery for %s: %s", repo_path, discovery.describe(repo_path))
+    logger.debug(
+        "Source discovery for %s: %s", repo_path, discovery.describe(repo_path)
+    )
     return discovery
 
 

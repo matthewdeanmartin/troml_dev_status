@@ -158,7 +158,16 @@ include = [
 [mypy]
 plugins = "pydantic.mypy"
 
+[tool.black]
+line-length = 88
+
+[tool.isort]
+profile = "black"
+line_length = 88
+
+[tool.ruff]
+line-length = 88
+
 [tool.troml-dev-status]
 mode = "application"  # or "library"
 use_ai = true
-

@@ -35,7 +35,7 @@ def test_valid_changelog_passes(tmp_path: Path):
 
     v = ChangelogValidator(file_name=str(p))
     errors = v.validate(p.read_text(encoding="utf-8"))
-    assert errors == [], f"Expected no errors, got: {_messages(errors)}"
+    assert not errors, f"Expected no errors, got: {_messages(errors)}"
 
 
 @pytest.mark.parametrize(
@@ -61,7 +61,7 @@ def test_h1_heading_is_ok(tmp_path: Path):
     p = tmp_path / "CHANGELOG.md"
     p.write_text("# Changelog\n", encoding="utf-8")
     v = ChangelogValidator(file_name=str(p))
-    assert v.validate(p.read_text(encoding="utf-8")) == []
+    assert not v.validate(p.read_text(encoding="utf-8"))
 
 
 def test_version_heading_missing_bracket_block(tmp_path: Path):
@@ -77,7 +77,7 @@ def test_version_heading_unreleased_needs_no_date(tmp_path: Path):
     p = tmp_path / "CHANGELOG.md"
     p.write_text("# Changelog\n## [Unreleased]\n", encoding="utf-8")
     v = ChangelogValidator(file_name=str(p))
-    assert v.validate(p.read_text(encoding="utf-8")) == []
+    assert not v.validate(p.read_text(encoding="utf-8"))
 
 
 def test_version_heading_missing_date_metadata(tmp_path: Path):
@@ -114,7 +114,7 @@ def test_change_heading_accepts_only_known_types(tmp_path: Path):
 
     v = ChangelogValidator(file_name=str(p))
     errors = v.validate(p.read_text(encoding="utf-8"))
-    assert errors == [], f"Expected no errors, got: {_messages(errors)}"
+    assert not errors, f"Expected no errors, got: {_messages(errors)}"
 
 
 def test_change_heading_rejects_unknown_type(tmp_path: Path):
@@ -154,7 +154,7 @@ def test_lines_that_are_not_headings_or_entries_ignored(tmp_path: Path):
     )
     v = ChangelogValidator(file_name=str(p))
     errors = v.validate(p.read_text(encoding="utf-8"))
-    assert errors == [], f"Unexpected errors: {_messages(errors)}"
+    assert not errors, f"Unexpected errors: {_messages(errors)}"
 
 
 def test_example_invalid_block_from_module_yields_all_key_errors(tmp_path: Path):

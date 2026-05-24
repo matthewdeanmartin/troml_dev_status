@@ -18,7 +18,6 @@
 
 - Case sensitivity bug in finding standard files
 
-
 ## Support for less common project layouts
 
 - single .py file

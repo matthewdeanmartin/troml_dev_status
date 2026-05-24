@@ -1,11 +1,11 @@
 # PEP XXXX — A Fully-Objective Rubric for Inferring “Development Status :: X – …” from Code & Release Artifacts
 
-| PEP          | XXXX                                                        |
+| PEP | XXXX |
 |--------------|-------------------------------------------------------------|
-| Title        | A fully-objective rubric for Development Status classifiers |
-| Author       | Matthew Dean Martin                                         |
-| Status       | Draft                                                       |
-| Created      | 2025-09-14                                                  |
+| Title | A fully-objective rubric for Development Status classifiers |
+| Author | Matthew Dean Martin |
+| Status | Draft |
+| Created | 2025-09-14 |
 
 ## Abstract
 
@@ -34,18 +34,18 @@ tools may use to recommend a classifier.
 Trove development-status classifiers are self-declared and often ambiguous. Teams, users, and automated systems benefit
 from an **evidence-based, reproducible** inference that:
 
-* Works **only** from code and published artifacts.
+- Works **only** from code and published artifacts.
 
-* Is **independent** of maintainers’ subjective claims or current life situation.
+- Is **independent** of maintainers’ subjective claims or current life situation.
 
-* Yields a classifier that **matches measurable software maturity**.
+- Yields a classifier that **matches measurable software maturity**.
 
 ## Scope & Non-Goals
 
-* **In scope:** Rules that derive a status from Git history, tags, diffs, static analysis of code/docs/config, and *
-  *PyPI releases** (sdist/wheels and metadata).
+- **In scope:** Rules that derive a status from Git history, tags, diffs, static analysis of code/docs/config, and \*
+  *PyPI releases*\* (sdist/wheels and metadata).
 
-* **Out of scope:** Popularity metrics (stars/forks), issue triage, discussion forums, “is it good?”, or running tests
+- **Out of scope:** Popularity metrics (stars/forks), issue triage, discussion forums, “is it good?”, or running tests
   in CI. (We may **discover** tests exist; we do **not** need to *execute* them.)
 
 ## Definitions (Objective Signals)
@@ -54,11 +54,11 @@ All dates/times are UTC; “now” is the evaluation timestamp.
 
 We assume access to:
 
-* The Git repository (default branch).
+- The Git repository (default branch).
 
-* The project’s **PyPI project name** (via `pyproject.toml [project].name` or `setup.cfg`).
+- The project’s **PyPI project name** (via `pyproject.toml [project].name` or `setup.cfg`).
 
-* Published artifacts and metadata for the latest release on PyPI.
+- Published artifacts and metadata for the latest release on PyPI.
 
 We compute the following **checks**. Each check is a yes/no derived from code or release artifacts. If a check is “not
 applicable,” count it as **failed** (objective pressure to provide evidence).
@@ -95,8 +95,8 @@ package excluding `__init__.py`).
 **Q5. Type hints shipped:** `py.typed` present in package **and** ≥ **70%** of public functions/classes in `src/`
 have type annotations (static count via AST).
 
-**Q6. Docs present:** A `docs/` dir with Sphinx or MkDocs config (`conf.py` or `mkdocs.yml`) **or** README length ≥ *
-*500 words** and includes an “Installation” section.
+**Q6. Docs present:** A `docs/` dir with Sphinx or MkDocs config (`conf.py` or `mkdocs.yml`) **or** README length ≥ \*
+*500 words*\* and includes an “Installation” section.
 
 **Q7. CHANGELOG present:** `CHANGELOG*` (or `NEWS*`) exists with ≥ **3** dated entries.
 
@@ -115,28 +115,27 @@ A measure of how much of the codebase is **implemented vs. stubbed**. Completene
 
 **Signals:**
 
-* **Cmpl1. TODO/FIXME/BUG markers.** Count occurrences in code and docs. Fail if >5 markers per 1kLOC.
+- **Cmpl1. TODO/FIXME/BUG markers.** Count occurrences in code and docs. Fail if >5 markers per 1kLOC.
 
-* **Cmpl2. NotImplemented usage.** Pass if <1% of functions/methods raise `NotImplementedError`. (Intentional abstract base classes may whitelist exceptions.)
+- **Cmpl2. NotImplemented usage.** Pass if \<1% of functions/methods raise `NotImplementedError`. (Intentional abstract base classes may whitelist exceptions.)
 
-* **Cmpl3. Placeholder `pass`.** Pass if <5% of functions/methods are only `pass`. (Allow pass in class definitions for style.)
+- **Cmpl3. Placeholder `pass`.** Pass if \<5% of functions/methods are only `pass`. (Allow pass in class definitions for style.)
 
-* **Cmpl4. Stub files.** Fail if >10% of discovered `.py` files contain only stubs (e.g., <10 lines of code, mostly comments/`pass`).
+- **Cmpl4. Stub files.** Fail if >10% of discovered `.py` files contain only stubs (e.g., \<10 lines of code, mostly comments/`pass`).
 
-* **Cmpl5. Functionality coverage.** Pass if `tests/` exercises ≥50% of public modules (measured by import and symbol reference, not runtime coverage).
+- **Cmpl5. Functionality coverage.** Pass if `tests/` exercises ≥50% of public modules (measured by import and symbol reference, not runtime coverage).
 
-* **Completeness Score (0–5):** Sum of signals passed.
+- **Completeness Score (0–5):** Sum of signals passed.
 
 Projects with low Completeness scores are objectively less likely to be usable, regardless of stated ambitions.
-
 
 ### Deprecation Hygiene (Static)
 
 **D1. Deprecation policy evidence:** Presence of **either**:
 
-* `CHANGELOG` entries containing headings “Deprecated”/“Removed” with itemized entries, **or**
+- `CHANGELOG` entries containing headings “Deprecated”/“Removed” with itemized entries, **or**
 
-* `warnings.warn(..., DeprecationWarning)` in code committed **before** the removal release.
+- `warnings.warn(..., DeprecationWarning)` in code committed **before** the removal release.
 
 ### Security & Supply Chain
 
@@ -147,8 +146,8 @@ Projects with low Completeness scores are objectively less likely to be usable, 
 **C3. Minimal pin sanity:** Runtime dependencies in `pyproject.toml` avoid bare unconstrained `*`; each has at least a
 lower bound (e.g., `>=`).
 
-**C4. Repro inputs:** A lockfile is present for dev tooling (any of: `uv.lock`, `poetry.lock`, `requirements*.txt`) **or
-** a `constraints.txt`.
+**C4. Repro inputs:** A lockfile is present for dev tooling (any of: `uv.lock`, `poetry.lock`, `requirements*.txt`) \*\*or
+\*\* a `constraints.txt`.
 
 ### Maintenance Age & Cadence
 
@@ -157,7 +156,6 @@ lower bound (e.g., `>=`).
 **M2. Code motion:** At least **one** commit touching `src/` (or package dir) in last **365** days.
 
 **M3. Mature grace:** For “Mature” evaluation, see thresholds below.
-
 
 > **Note:** All checks are **objective**: they do not require executing code or tests; they rely on static files, Git
 > metadata, release metadata, and tag signatures.
@@ -173,7 +171,7 @@ When “Inactive” conditions are met, “Inactive” **overrides** all other c
 
 If you publish a package on pypi, it is active again. By definition, a just published packages is active again. You
 can't update a trove classifier without republishing a package. Inactive at best, is a signal that this is the last
-planned package ever. No static code analysis can determine the future or intentions of the maintainer. If a package 
+planned package ever. No static code analysis can determine the future or intentions of the maintainer. If a package
 has no new versions for 100 years and a new package is published, maybe it will be published daily from then on, no
 one can tell from past history. If anything, a revived package wouldn't want to signal inactivity if it were to revive.
 
@@ -181,34 +179,32 @@ one can tell from past history. If anything, a revived package wouldn't want to 
 
 Classify as **Development Status :: 5 – Production/Stable** iff **all** of the following pass:
 
-* **Release/packaging:** R1–R6
+- **Release/packaging:** R1–R6
 
-* **Quality discoverability:** Q1–Q7
+- **Quality discoverability:** Q1–Q7
 
-* **API stability:** S1–S2 (or S3 if <1.0, see note below)
+- **API stability:** S1–S2 (or S3 if \<1.0, see note below)
 
-* **Deprecation hygiene:** D1
+- **Deprecation hygiene:** D1
 
-* **Security/supply chain:** C1–C4
+- **Security/supply chain:** C1–C4
 
-* **Maintenance:** M1–M2, and **R4 within 12 months**
+- **Maintenance:** M1–M2, and **R4 within 12 months**
 
-* **Completeness** ≥4/5 must pass.
+- **Completeness** ≥4/5 must pass.
 
-> **Note on <1.0 “stable”:** If latest release is `<1.0`, you **cannot** be Production/Stable; require `>=1.0.0`. (
+> **Note on \<1.0 “stable”:** If latest release is `<1.0`, you **cannot** be Production/Stable; require `>=1.0.0`. (
 > Objective, simple to verify.)
-
-
 
 ### Mature
 
 Classify as **Development Status :: 6 – Mature** iff **Production/Stable** passes **and**:
 
-* **First 1.0.0** (or higher) was **≥ 24 months** ago, **and**
+- **First 1.0.0** (or higher) was **≥ 24 months** ago, **and**
 
-* Over the last **18 months** of releases, **S2** holds (no breaking API between minor versions), **and**
+- Over the last **18 months** of releases, **S2** holds (no breaking API between minor versions), **and**
 
-* Release cadence may slow: **R4 within 24 months** (instead of 12) **but** M2 still within **12 months** (someone
+- Release cadence may slow: **R4 within 24 months** (instead of 12) **but** M2 still within **12 months** (someone
   touched code/docs/metadata).
 
 ### Planning / Pre-Alpha / Alpha / Beta (checkbox counts)
@@ -218,39 +214,39 @@ of checks passed in this set:
 
 `EPS_SET = {R2,R3,R5,R6,Q1,Q2,Q3,Q4,Q5,Q6,Q7,S1,S3,D1,C1,C3,C4,M1}`
 
-* **Planning (1):** R1 passes, and **EPS ∈ \[0, 3]**, and latest version `<0.1.0`.
+- **Planning (1):** R1 passes, and **EPS ∈ [0, 3]**, and latest version `<0.1.0`.
 
-* **Pre-Alpha (2):** R1 passes, and \*\*EPS ∈ \[4, 6]`, version `<0.1.0\`.
+- **Pre-Alpha (2):** R1 passes, and \*\*EPS ∈ [4, 6]`, version `\<0.1.0\`.
 
-* **Alpha (3):** R1 passes, and \*\*EPS ∈ \[7, 11]`, version `<1.0.0\`.
+- **Alpha (3):** R1 passes, and \*\*EPS ∈ [7, 11]`, version `\<1.0.0\`.
 
-* **Beta (4):** R1 passes, and \*\*EPS ∈ \[12, |EPS\_SET|]`, version `<1.0.0\`, and **S3** holds (pre-1.0 churn ≤ 20%)
-  and **R4 within 12 months**.  Must pass ≥3/5 of completeness tests.
+- **Beta (4):** R1 passes, and \*\*EPS ∈ [12, |EPS_SET|]`, version `\<1.0.0\`, and **S3** holds (pre-1.0 churn ≤ 20%)
+  and **R4 within 12 months**. Must pass ≥3/5 of completeness tests.
 
 > Rationale: Early phases are expressed as **how many boxes you’ve objectively checked**. Beta adds an extra guard for
 > manageable API churn and current activity.
 
 ### Tie-Breaking & Unknown
 
-* If a project fails **R1** (no PyPI release), it is **Planning**.
+- If a project fails **R1** (no PyPI release), it is **Planning**.
 
 ## Algorithm (Deterministic)
 
 1. **Discover project name** from `pyproject.toml` / `setup.cfg`.
 
-2. **Fetch PyPI releases** and artifacts; compute R1–R6, R4 windowed for 12 and 24 months.
+1. **Fetch PyPI releases** and artifacts; compute R1–R6, R4 windowed for 12 and 24 months.
 
-3. **Read Git history** (default branch) to compute M2, tag signatures for C2.
+1. **Read Git history** (default branch) to compute M2, tag signatures for C2.
 
-4. **Parse repo** to compute Q1–Q7, D1, C1, C3–C4, S1–S3 (using AST across two releases).
+1. **Parse repo** to compute Q1–Q7, D1, C1, C3–C4, S1–S3 (using AST across two releases).
 
-5. **Apply Inactive override.**
+1. **Apply Inactive override.**
 
-6. If not Inactive, check **Production**; if passes, then evaluate **Mature**.
+1. If not Inactive, check **Production**; if passes, then evaluate **Mature**.
 
-7. If not Production/Mature, compute **EPS** and map to Planning/Pre-Alpha/Alpha/Beta.
+1. If not Production/Mature, compute **EPS** and map to Planning/Pre-Alpha/Alpha/Beta.
 
-8. Return: **classifier** + **evidence report** (which checks passed/failed, with file/commit/release references).
+1. Return: **classifier** + **evidence report** (which checks passed/failed, with file/commit/release references).
 
 ## Reference “Evidence” Report (Normative Format)
 
@@ -285,7 +281,7 @@ Tools **must** produce a machine-readable JSON and a human summary:
 
 ```
 
-The human summary must list **why** the final state was chosen (e.g., “Beta: EPS=14; <1.0; pre-1.0 churn 8% (≤20%); last
+The human summary must list **why** the final state was chosen (e.g., “Beta: EPS=14; \<1.0; pre-1.0 churn 8% (≤20%); last
 release 4 months ago”).
 
 ## Backwards Compatibility
@@ -295,50 +291,50 @@ implement; maintainers remain free to declare any classifier.
 
 ## Reference Implementation (Sketch)
 
-* **Release data:** `pip index versions`, or JSON API `https://pypi.org/pypi/<name>/json`.
+- **Release data:** `pip index versions`, or JSON API `https://pypi.org/pypi/<name>/json`.
 
-* **Wheel/sdist structure:** Download and inspect metadata; validate `Requires-Python`, classifiers.
+- **Wheel/sdist structure:** Download and inspect metadata; validate `Requires-Python`, classifiers.
 
-* **Repo parse:** Use `git` to enumerate tags, commits; parse source via `ast` to extract public API.
+- **Repo parse:** Use `git` to enumerate tags, commits; parse source via `ast` to extract public API.
 
-* **API diff:** Build symbol maps (module → {names → signatures}) per release; compute removal/compat deltas.
+- **API diff:** Build symbol maps (module → {names → signatures}) per release; compute removal/compat deltas.
 
-* **Type coverage:** Count annotated functions/classes (presence of type annotations in AST).
+- **Type coverage:** Count annotated functions/classes (presence of type annotations in AST).
 
-* **Docs/CI detection:** Static presence checks for configs and docs.
+- **Docs/CI detection:** Static presence checks for configs and docs.
 
-* **Security bits:** Check `SECURITY.md`; use trusted publisher.
+- **Security bits:** Check `SECURITY.md`; use trusted publisher.
 
-* **Constraints:** Never run code; only static inspection.
+- **Constraints:** Never run code; only static inspection.
 
 ## Security Considerations
 
-* Do not execute downloaded artifacts or repo code.
+- Do not execute downloaded artifacts or repo code.
 
-* Verify downloaded files’ hashes; prefer PyPI’s hashes.
+- Verify downloaded files’ hashes; prefer PyPI’s hashes.
 
 ## Rationale & Alternatives
 
-* “Inactive” is defined by **time since last release**, **lack of code motion**, and **outdated Python support**—not
+- “Inactive” is defined by **time since last release**, **lack of code motion**, and **outdated Python support**—not
   repo “archival” or sentiment.
 
-* “Production” is intentionally strict: it demands robust packaging, docs, CI, API stability hygiene, and supply-chain
+- “Production” is intentionally strict: it demands robust packaging, docs, CI, API stability hygiene, and supply-chain
   signals—**all demonstrably present in the code/release**.
 
-* Early statuses are **pure checkbox counts**, per the request, with explicit, testable thresholds.
+- Early statuses are **pure checkbox counts**, per the request, with explicit, testable thresholds.
 
 ## Appendix A — Exact Thresholds (for clarity)
 
-* **Recent release window:** 12 months (Production/Beta) / 24 months (Mature acceptable).
+- **Recent release window:** 12 months (Production/Beta) / 24 months (Mature acceptable).
 
-* **API churn thresholds:** ≤5% removals for S1; 0% removals for S2 (≥1.0); ≤20% removals for S3 (<1.0).
+- **API churn thresholds:** ≤5% removals for S1; 0% removals for S2 (≥1.0); ≤20% removals for S3 (\<1.0).
 
-* **Test ratio:** ≥0.20.
+- **Test ratio:** ≥0.20.
 
-* **Type hints:** ≥70% public objects annotated (function/method params & returns).
+- **Type hints:** ≥70% public objects annotated (function/method params & returns).
 
-* **README length:** ≥500 words and contains case-insensitive heading “Installation”.
+- **README length:** ≥500 words and contains case-insensitive heading “Installation”.
 
-* **Project age:** ≥90 days since first PyPI release for M1.
+- **Project age:** ≥90 days since first PyPI release for M1.
 
-* **Trusted Publisher:** Latest release tag must use trusted-publisher; inability to verify counts as fail.
+- **Trusted Publisher:** Latest release tag must use trusted-publisher; inability to verify counts as fail.

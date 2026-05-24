@@ -5,7 +5,7 @@ Project inspired by troml to suggest a Development Status based solely on object
 A tool to objectively infer PyPI "Development Status" classifiers from code and release artifacts, based on the
 [draft PEP ∞](https://github.com/matthewdeanmartin/troml_dev_status/blob/main/docs/PEP.md).
 
-As far as I know, no python authority has given objective criteria for development status and the meaning is 
+As far as I know, no python authority has given objective criteria for development status and the meaning is
 private to each user. Development status gets brief mention in PEP301.
 
 Meanings
@@ -42,7 +42,7 @@ Should be safe to pipx install so as to not mix your dependencies with the tool'
 
 ```bash
 pipx install troml-dev-status
-````
+```
 
 ## Usage
 
@@ -116,14 +116,14 @@ The tool also prints a detailed JSON object containing the results of every chec
 
 ## Project Health
 
-| Metric      | Status                                                                                                                                                                                                                |
+| Metric | Status |
 |-------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Coverage    | [![codecov](https://codecov.io/gh/matthewdeanmartin/troml_dev_status/branch/main/graph/badge.svg)](https://codecov.io/gh/matthewdeanmartin/troml_dev_status)                                                          |
-| Docs        | [![Docs](https://troml-dev-status.readthedocs.org/projects/troml_dev_status/badge/?version=latest)](https://troml-dev-status.readthedocs.io/en/latest/)                                                               |
-| PyPI        | [![PyPI](https://img.shields.io/pypi/v/troml_dev_status)](https://pypi.org/project/troml-dev-status/)                                                                                                                 |
-| Downloads   | [![Downloads](https://static.pepy.tech/personalized-badge/troml-dev-status?period=total&units=international_system&left_color=grey&right_color=blue&left_text=Downloads)](https://pepy.tech/project/troml_dev_status) |
-| License     | [![License](https://img.shields.io/github/license/matthewdeanmartin/troml_dev_status)](https://github.com/matthewdeanmartin/troml_dev_status/blob/main/LICENSE)                                                       |
-| Last Commit | ![Last Commit](https://img.shields.io/github/last-commit/matthewdeanmartin/troml_dev_status)                                                                                                                          |
+| Coverage | [![codecov](https://codecov.io/gh/matthewdeanmartin/troml_dev_status/branch/main/graph/badge.svg)](https://codecov.io/gh/matthewdeanmartin/troml_dev_status) |
+| Docs | [![Docs](https://troml-dev-status.readthedocs.org/projects/troml_dev_status/badge/?version=latest)](https://troml-dev-status.readthedocs.io/en/latest/) |
+| PyPI | [![PyPI](https://img.shields.io/pypi/v/troml_dev_status)](https://pypi.org/project/troml-dev-status/) |
+| Downloads | [![Downloads](https://static.pepy.tech/personalized-badge/troml-dev-status?period=total&units=international_system&left_color=grey&right_color=blue&left_text=Downloads)](https://pepy.tech/project/troml_dev_status) |
+| License | [![License](https://img.shields.io/github/license/matthewdeanmartin/troml_dev_status)](https://github.com/matthewdeanmartin/troml_dev_status/blob/main/LICENSE) |
+| Last Commit | ![Last Commit](https://img.shields.io/github/last-commit/matthewdeanmartin/troml_dev_status) |
 
 ## Library info pages
 
@@ -136,21 +136,26 @@ The tool also prints a detailed JSON object containing the results of every chec
 ## Prior Art
 
 Autofill/Suggest
+
 - [troml](https://pypi.org/project/troml/)
 - [check-python-versions](https://pypi.org/project/check-python-versions/)
 
 Validate
+
 - [classifier-checker](https://pypi.org/project/classifier-checker/)
 - [pyroma](https://pypi.org/project/pyroma/) - Metadata completeness + 3 maintainers
 
 Raw Data
+
 - [trove-classifiers](https://pypi.org/project/trove-classifiers/)
 - [trove-classifiers-cli](https://pypi.org/project/trove-classifiers-cli/)
 
 UI/Initialization
+
 - [trove-setup](https://pypi.org/project/trove-setup/)
 
 License Tracking
+
 - [pip-licenses](https://github.com/raimon49/pip-licenses)
 
 ## Similar hosted services
@@ -158,9 +163,8 @@ License Tracking
 - [OpenSSF Best Practices](https://www.bestpractices.dev) - some machine validated criteria and many self asserted.
 - Libraries.io SourceRank - 1/2 things you can control, 1/2 "popularity contest" metrics
 
-
 ## Contributing
 
-See the [contributing](docs/contributing.md) file for how to contribute 
+See the [contributing](docs/contributing.md) file for how to contribute
 
 See the [development_setup](docs/development_setup.md) file for how to set up and to run a local build.

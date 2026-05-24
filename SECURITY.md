@@ -14,10 +14,10 @@ standby. Reports are handled on a best-effort basis, similar to any other bug re
 Security updates will only be applied to the **most recent major/minor version** available on PyPI. Please ensure you
 are using the latest release to receive security patches.
 
-| Version | Supported            |
+| Version | Supported |
 |---------|----------------------|
-| `1.x.x` | :white\_check\_mark: |
-| `< 1.0` | :x:                  |
+| `1.x.x` | :white_check_mark: |
+| `< 1.0` | :x: |
 
 ## Reporting a Vulnerability
 
@@ -27,10 +27,10 @@ Instead, please email me at **`matthewdeanmartin@gmail.com`**.
 
 When reporting, please include the following to help me understand and address the issue quickly:
 
-* The version of the tool you are using.
-* A clear description of the vulnerability.
-* Steps to reproduce the vulnerability, if possible.
-* Any potential impact you've identified.
+- The version of the tool you are using.
+- A clear description of the vulnerability.
+- Steps to reproduce the vulnerability, if possible.
+- Any potential impact you've identified.
 
 I will do my best to acknowledge your report within a few days and keep you updated on the progress of any fix. Once a
 fix is released, I will credit you for the discovery unless you prefer to remain anonymous.
@@ -52,7 +52,7 @@ dependency* (a dependency of one of our dependencies) has a known vulnerability,
 1. **Override the Dependency:** In your own Python environment, you can force an upgrade of the vulnerable
    sub-dependency. For example, if a library `some-lib` is vulnerable, you can create a `requirements.txt` file with
    `some-lib>=1.2.4` and install it alongside this tool.
-2. **Submit an Issue or Pull Request:** Please open an issue on the GitHub repository notifying me of the vulnerability.
+1. **Submit an Issue or Pull Request:** Please open an issue on the GitHub repository notifying me of the vulnerability.
    A pull request that updates the dependency and confirms that all tests still pass is the fastest way to get it fixed
    and is greatly appreciated.
 

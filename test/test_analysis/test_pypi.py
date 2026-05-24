@@ -4,6 +4,8 @@ import string
 import pytest
 from packaging.version import Version
 
+# pylint: disable=redefined-outer-name
+
 # Import the module under test
 # Adjust the import if your test layout differs
 from troml_dev_status.analysis import pypi as pypi_mod
