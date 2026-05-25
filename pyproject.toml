@@ -174,3 +174,6 @@ line-length = 88
 [tool.troml-dev-status]
 mode = "application"  # or "library"
 use_ai = true
+
+[tool.uv]
+universal = true
