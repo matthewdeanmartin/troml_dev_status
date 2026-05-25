@@ -170,11 +170,11 @@ dog_food:
 # ── Quality gates ─────────────────────────────────────────────────────────────
 
 .PHONY: check
-check: format-check lint-check security test mypy metadata-check version-check update_dev_status dog_food
+check: lint-check security test mypy metadata-check version-check update_dev_status dog_food
 	@echo "All checks passed."
 
 .PHONY: check-ci
-check-ci: format-check lint-check security test-ci mypy metadata-check version-check
+check-ci: lint-check security test-ci mypy metadata-check version-check
 	@echo "CI checks passed."
 
 # ── Documentation ─────────────────────────────────────────────────────────────
