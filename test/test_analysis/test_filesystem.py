@@ -365,7 +365,10 @@ def test_set_dev_status_classifier_updates_project_table(tmp_path: Path) -> None
     content = (tmp_path / "pyproject.toml").read_text(encoding="utf-8")
 
     assert updated is True
-    assert get_dev_status_classifier(tmp_path) == "Development Status :: 5 - Production/Stable"
+    assert (
+        get_dev_status_classifier(tmp_path)
+        == "Development Status :: 5 - Production/Stable"
+    )
     assert "Development Status :: 3 - Alpha" not in content
     assert "Topic :: Utilities" in content
 
@@ -386,9 +389,7 @@ def test_set_dev_status_classifier_updates_setup_cfg_when_pyproject_missing(
         ),
     )
 
-    updated = set_dev_status_classifier(
-        tmp_path, "Development Status :: 4 - Beta"
-    )
+    updated = set_dev_status_classifier(tmp_path, "Development Status :: 4 - Beta")
     content = (tmp_path / "setup.cfg").read_text(encoding="utf-8")
 
     assert updated is True
