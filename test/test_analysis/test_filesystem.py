@@ -43,12 +43,10 @@ def test_get_project_name_reads_name(tmp_path: Path) -> None:
     write(
         tmp_path,
         "pyproject.toml",
-        textwrap.dedent(
-            """
+        textwrap.dedent("""
             [project]
             name = "cool-lib"
-            """
-        ),
+            """),
     )
     assert get_project_name(tmp_path) == "cool-lib"
 
@@ -57,12 +55,10 @@ def test_get_project_name_reads_poetry_name(tmp_path: Path) -> None:
     write(
         tmp_path,
         "pyproject.toml",
-        textwrap.dedent(
-            """
+        textwrap.dedent("""
             [tool.poetry]
             name = "poetry-lib"
-            """
-        ),
+            """),
     )
     assert get_project_name(tmp_path) == "poetry-lib"
 
@@ -71,12 +67,10 @@ def test_get_project_name_reads_setup_cfg_name(tmp_path: Path) -> None:
     write(
         tmp_path,
         "setup.cfg",
-        textwrap.dedent(
-            """
+        textwrap.dedent("""
             [metadata]
             name = cfg-lib
-            """
-        ),
+            """),
     )
     assert get_project_name(tmp_path) == "cfg-lib"
 
@@ -99,13 +93,11 @@ def test_get_project_dependencies_reads_list(tmp_path: Path) -> None:
     write(
         tmp_path,
         "pyproject.toml",
-        textwrap.dedent(
-            """
+        textwrap.dedent("""
             [project]
             name = "thing"
             dependencies = ["requests>=2", "pydantic==2.*"]
-            """
-        ),
+            """),
     )
     assert get_project_dependencies(tmp_path) == ["requests>=2", "pydantic==2.*"]
 
@@ -114,8 +106,7 @@ def test_get_project_dependencies_reads_poetry_dependencies(tmp_path: Path) -> N
     write(
         tmp_path,
         "pyproject.toml",
-        textwrap.dedent(
-            """
+        textwrap.dedent("""
             [tool.poetry]
             name = "thing"
 
@@ -123,8 +114,7 @@ def test_get_project_dependencies_reads_poetry_dependencies(tmp_path: Path) -> N
             python = ">=3.11"
             httpx = "^0.28"
             rich = ">=13"
-            """
-        ),
+            """),
     )
     assert get_project_dependencies(tmp_path) == ["httpx", "rich"]
 
@@ -135,14 +125,12 @@ def test_get_project_dependencies_reads_setup_cfg_install_requires(
     write(
         tmp_path,
         "setup.cfg",
-        textwrap.dedent(
-            """
+        textwrap.dedent("""
             [options]
             install_requires =
                 httpx>=0.28
                 rich
-            """
-        ),
+            """),
     )
     assert get_project_dependencies(tmp_path) == ["httpx>=0.28", "rich"]
 
@@ -299,8 +287,7 @@ def test_analyze_type_hint_coverage_counts_public_return_annotations(
     write(
         tmp_path,
         "srcpkg/a.py",
-        textwrap.dedent(
-            """
+        textwrap.dedent("""
             def f1(x):  # public, no return annotation -> not counted as annotated
                 return x
 
@@ -309,21 +296,18 @@ def test_analyze_type_hint_coverage_counts_public_return_annotations(
 
             def _private(x) -> int:  # private, should not be counted at all
                 return 0
-            """
-        ),
+            """),
     )
     write(
         tmp_path,
         "srcpkg/b.py",
-        textwrap.dedent(
-            """
+        textwrap.dedent("""
             async def f3() -> str:  # public async with return annotation
                 return "ok"
 
             def f4(y: int):  # public, param annotated only, no return -> not annotated
                 return y
-            """
-        ),
+            """),
     )
     coverage, total = analyze_type_hint_coverage(src)
     # Public symbols: f1, f2, f3, f4 => total = 4
@@ -347,16 +331,14 @@ def test_set_dev_status_classifier_updates_project_table(tmp_path: Path) -> None
     write(
         tmp_path,
         "pyproject.toml",
-        textwrap.dedent(
-            """
+        textwrap.dedent("""
             [project]
             name = "cool-lib"
             classifiers = [
                 "Development Status :: 3 - Alpha",
                 "Topic :: Utilities",
             ]
-            """
-        ),
+            """),
     )
 
     updated = set_dev_status_classifier(
@@ -379,14 +361,12 @@ def test_set_dev_status_classifier_updates_setup_cfg_when_pyproject_missing(
     write(
         tmp_path,
         "setup.cfg",
-        textwrap.dedent(
-            """
+        textwrap.dedent("""
             [metadata]
             classifiers =
                 Development Status :: 3 - Alpha
                 Topic :: Utilities
-            """
-        ),
+            """),
     )
 
     updated = set_dev_status_classifier(tmp_path, "Development Status :: 4 - Beta")

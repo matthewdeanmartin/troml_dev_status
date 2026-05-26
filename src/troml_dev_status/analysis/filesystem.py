@@ -12,6 +12,7 @@ NEW:
 - Even when venv_mode=False, we now fall back to importlib.metadata if config
   files are missing or unparseable.
 """
+
 from __future__ import annotations
 
 import ast

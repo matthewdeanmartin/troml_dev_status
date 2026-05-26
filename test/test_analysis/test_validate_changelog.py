@@ -19,8 +19,7 @@ def _messages(errors):
 def test_valid_changelog_passes(tmp_path: Path):
     p = tmp_path / "CHANGELOG.md"
     p.write_text(
-        textwrap.dedent(
-            """\
+        textwrap.dedent("""\
             # Changelog
             ## [Unreleased]
             ### Fixed
@@ -28,8 +27,7 @@ def test_valid_changelog_passes(tmp_path: Path):
             ## [1.2.3] - 2025-09-20
             ### Added
             - Initial release.
-            """
-        ),
+            """),
         encoding="utf-8",
     )
 
@@ -120,14 +118,12 @@ def test_change_heading_accepts_only_known_types(tmp_path: Path):
 def test_change_heading_rejects_unknown_type(tmp_path: Path):
     p = tmp_path / "CHANGELOG.md"
     p.write_text(
-        textwrap.dedent(
-            """\
+        textwrap.dedent("""\
             # Changelog
             ## [1.0.0] - 2025-09-20
             ### New Things
             - A bullet
-            """
-        ),
+            """),
         encoding="utf-8",
     )
     v = ChangelogValidator(file_name=str(p))
@@ -140,16 +136,14 @@ def test_change_heading_rejects_unknown_type(tmp_path: Path):
 def test_lines_that_are_not_headings_or_entries_ignored(tmp_path: Path):
     p = tmp_path / "CHANGELOG.md"
     p.write_text(
-        textwrap.dedent(
-            """\
+        textwrap.dedent("""\
             # Changelog
             Some prose paragraph explaining the rules.
 
             ## [1.0.0] - 2025-09-20
             ### Fixed
             - Thing
-            """
-        ),
+            """),
         encoding="utf-8",
     )
     v = ChangelogValidator(file_name=str(p))
@@ -161,16 +155,14 @@ def test_example_invalid_block_from_module_yields_all_key_errors(tmp_path: Path)
     # Mirrors the module's example, assert we catch the important failures.
     p = tmp_path / "CHANGELOG.md"
     p.write_text(
-        textwrap.dedent(
-            """\
+        textwrap.dedent("""\
             # Changelog
             ## [1.0.0] - 2025/09/20
             ### New Things
             - A new feature.
               - A sub-list item which is not allowed.
             #### Invalid Header
-            """
-        ),
+            """),
         encoding="utf-8",
     )
     v = ChangelogValidator(file_name=str(p))

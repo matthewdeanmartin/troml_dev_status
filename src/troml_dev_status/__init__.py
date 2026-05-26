@@ -19,6 +19,7 @@ The primary public API includes:
 - evaluate_readme, RubricResult: A standalone utility to score a README file's
   completeness based on a detailed rubric.
 """
+
 from __future__ import annotations
 
 # from .analysis.readme_eval import RubricResult, evaluate_readme
