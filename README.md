@@ -165,6 +165,14 @@ License Tracking
 
 ## Contributing
 
-See the [contributing](docs/contributing.md) file for how to contribute
+See the [contributing](https://github.com/matthewdeanmartin/troml_dev_status/blob/main/docs/contributing.md) file for how to contribute
 
-See the [development_setup](docs/development_setup.md) file for how to set up and to run a local build.
+See the [development_setup](https://github.com/matthewdeanmartin/troml_dev_status/blob/main/docs/development_setup.md) file for how to set up and to run a local build.
+
+## Project Links
+
+- [GitHub](https://github.com/matthewdeanmartin/troml_dev_status)
+- [PyPI](https://pypi.org/project/troml-dev-status/)
+- [Documentation](https://troml-dev-status.readthedocs.io/en/latest/)
+- [Bug Tracker](https://github.com/matthewdeanmartin/troml_dev_status/issues)
+- [Change Log](https://github.com/matthewdeanmartin/troml_dev_status/blob/main/CHANGELOG.md)
