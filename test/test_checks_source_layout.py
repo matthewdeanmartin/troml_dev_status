@@ -49,7 +49,8 @@ def test_source_sensitive_checks_prefer_named_root_package_over_unrelated_src(
     assert coverage == 100.0
     assert total_symbols == 11
     assert s1.passed is True
-    assert "my_lib\\__init__.py" in s1.evidence
+    assert "my_lib" in s1.evidence
+    assert "__init__.py" in s1.evidence
 
 
 def test_c3_application_mode_accepts_exact_mistune_range_example(

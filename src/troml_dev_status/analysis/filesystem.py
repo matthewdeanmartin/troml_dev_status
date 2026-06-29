@@ -582,7 +582,7 @@ def _discover_python_sources_cached(
                 seen_named_dirs.add(named_dir)
                 named_dirs.append(named_dir)
 
-        for child in base.iterdir():
+        for child in sorted(base.iterdir()):
             if child.is_dir() and (child / "__init__.py").exists():
                 if child in seen_packages:
                     continue
