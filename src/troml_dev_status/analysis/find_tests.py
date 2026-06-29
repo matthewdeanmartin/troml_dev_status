@@ -38,9 +38,16 @@ def _count_unittest(repo_path: Path, start_dirs: Iterable[str]) -> int:
     # Discover separately per start dir (mirrors how people usually run them)
     for d in dirs:
         # Default pattern matches test*.py; this picks up both test_*.py and *_test.py
-        suite = loader.discover(
-            start_dir=str(d), pattern="test*.py", top_level_dir=str(repo_path)
-        )
+        try:
+            suite = loader.discover(
+                start_dir=str(d), pattern="test*.py", top_level_dir=str(repo_path)
+            )
+        except ImportError:
+            # A tests/ dir without an __init__.py is not importable for unittest
+            # discovery (very common, perfectly valid for pytest-based projects).
+            # Skip it rather than crashing the whole analysis.
+            logger.debug("unittest discovery could not import %s; skipping", d)
+            continue
         master_suite.addTests(suite)
 
     return master_suite.countTestCases()

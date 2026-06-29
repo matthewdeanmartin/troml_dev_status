@@ -105,7 +105,11 @@ def cmd_validate(args: argparse.Namespace, console: Console) -> int:
         return 1
 
     with console.status(f"Analyzing '{project_name}' for validation..."):
-        report = run_analysis(repo_path, project_name)
+        report = run_analysis(
+            repo_path,
+            project_name,
+            allow_first_release=getattr(args, "allow_first_release", False),
+        )
 
     inferred = report.inferred_classifier
     current = filesystem.get_dev_status_classifier(repo_path)
@@ -143,7 +147,11 @@ def cmd_update(args: argparse.Namespace, console: Console) -> int:
         return 1
 
     with console.status(f"Analyzing '{project_name}' before update..."):
-        report = run_analysis(repo_path, project_name)
+        report = run_analysis(
+            repo_path,
+            project_name,
+            allow_first_release=getattr(args, "allow_first_release", False),
+        )
 
     inferred = report.inferred_classifier
     current = filesystem.get_dev_status_classifier(repo_path)
@@ -250,6 +258,14 @@ def build_parser() -> argparse.ArgumentParser:
         help="Also print the full evidence report as JSON on mismatch",
     )
     p_validate.add_argument(
+        "--allow-first-release",
+        action="store_true",
+        help=(
+            "Don't floor to '1 - Planning' when the project has no PyPI releases yet; "
+            "infer from code-quality signals instead (useful as a pre-publish gate)"
+        ),
+    )
+    p_validate.add_argument(
         "--verbose",
         action="store_true",
         help="Enable logging",
@@ -261,6 +277,14 @@ def build_parser() -> argparse.ArgumentParser:
         "update", help="Update pyproject.toml Development Status to the inferred value"
     )
     p_update.add_argument("repo_path", type=Path, help="Path to the local Git repo")
+    p_update.add_argument(
+        "--allow-first-release",
+        action="store_true",
+        help=(
+            "Don't floor to '1 - Planning' when the project has no PyPI releases yet; "
+            "infer from code-quality signals instead (useful as a pre-publish gate)"
+        ),
+    )
     p_update.add_argument(
         "--verbose",
         action="store_true",

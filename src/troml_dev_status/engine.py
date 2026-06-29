@@ -57,11 +57,15 @@ from troml_dev_status.models import CheckResult, EvidenceReport, Metrics
 logger = logging.getLogger(__name__)
 
 
-def run_analysis(repo_path: Path, project_name: str) -> EvidenceReport:
+def run_analysis(
+    repo_path: Path, project_name: str, *, allow_first_release: bool = False
+) -> EvidenceReport:
     """Orchestrates the analysis and classification process."""
 
     # --- Config and Analysis Phase ---
     config = load_config(repo_path)
+    # CLI flag OR [tool.troml-dev-status] allow_first_release = true
+    allow_first_release = allow_first_release or config.allow_first_release
     source_discovery = filesystem.discover_python_sources(repo_path)
     logger.debug(
         "Starting analysis: repo=%s project=%s mode=%s",
@@ -151,7 +155,9 @@ def run_analysis(repo_path: Path, project_name: str) -> EvidenceReport:
     results["Fail12"] = check_ds12_declares_deps_but_never_imports(repo_path)
 
     # --- Classification Logic ---
-    classifier, reason = determine_status(results, latest_version, metrics)
+    classifier, reason = determine_status(
+        results, latest_version, metrics, allow_first_release=allow_first_release
+    )
 
     return EvidenceReport(
         inferred_classifier=classifier,
@@ -264,6 +270,7 @@ def determine_status(
     venv_mode: bool = False,
     *,
     explain: bool = False,  # NEW (optional) – include detailed breakdown in the reason string
+    allow_first_release: bool = False,  # NEW – skip the "no PyPI release" hard-floor to Planning
 ) -> Tuple[str, str]:
     """
     Determine development status using ratio-based thresholds.
@@ -276,9 +283,22 @@ def determine_status(
         venv_mode = True
     logger.debug("Determining status with latest_version=%s", latest_version)
     # --- Hard gate: "Unclassifiable" if never released ---
+    # A project with no PyPI release normally floors to Planning. For a first
+    # release (pre-publish), `allow_first_release` treats "no release history" as
+    # absence of evidence rather than evidence of immaturity, and lets the
+    # code-quality signals below drive the inference instead.
     if not results.get("R1", type("X", (), {"passed": False})()).passed:
-        logger.debug("Hard gate: R1 failed or missing -> Planning")
-        return "Development Status :: 1 - Planning", "Project has no releases on PyPI."
+        if allow_first_release:
+            logger.debug(
+                "R1 failed/missing but allow_first_release set -> "
+                "falling back to code-quality inference"
+            )
+        else:
+            logger.debug("Hard gate: R1 failed or missing -> Planning")
+            return (
+                "Development Status :: 1 - Planning",
+                "Project has no releases on PyPI.",
+            )
 
     # --- Define check families (source sets) ---
     # --- Define source sets (pre-venv) ---

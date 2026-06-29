@@ -75,6 +75,31 @@ def test_planning_when_no_release():
     assert "no releases" in reason.lower() or "has no releases" in reason.lower()
 
 
+def test_allow_first_release_skips_planning_hard_gate():
+    # Same signals as the alpha path, but with NO PyPI release (R1 False).
+    # Without allow_first_release this floors to Planning; with it set, the
+    # code-quality signals drive the inference instead. See bug report:
+    # "validate fails a project's first release".
+    results = base_results()
+    results["R1"] = ck(False, "No releases")
+    for k in ["Q1", "Q2", "Q3", "Q4", "R3", "R5", "R6"]:
+        results[k] = ck(True)
+    for k in ["Q1", "Q2", "Q3", "Q4", "Q6", "Q7", "R5", "R6", "S1"]:
+        results[k] = ck(True)
+    for bad in BADNESS_CHECKS:
+        results[bad] = ck(True)
+
+    # Default: hard-floored to Planning.
+    status_default, _ = determine_status(results, None, Metrics())
+    assert status_default == "Development Status :: 1 - Planning"
+
+    # Opt-in: inference is allowed to rise above Planning.
+    status_allowed, _ = determine_status(
+        results, None, Metrics(), allow_first_release=True
+    )
+    assert status_allowed == "Development Status :: 3 - Alpha"
+
+
 def test_planning_when_release_but_low_completeness():
     results = base_results()
     results["R1"] = ck(True)  # has a release

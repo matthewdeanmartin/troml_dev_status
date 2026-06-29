@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `validate`/`update` `--allow-first-release` flag (and `[tool.troml-dev-status] allow_first_release`) to infer from code quality instead of flooring to Planning when a project has no PyPI releases yet
+
+### Fixed
+
+- No longer crashes on a `tests/` directory without `__init__.py` (unittest discovery `ImportError`)
+
 ## [0.6.1] - 2026-03-27
 
 ### Fixed
@@ -108,6 +116,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial release; `troml-dev-status .` will rate your code
 
+[Unreleased]: https://github.com/matthewdeanmartin/troml_dev_status/compare/v0.6.1...HEAD
 [0.6.1]: https://github.com/matthewdeanmartin/troml_dev_status/compare/v0.6.0...v0.6.1
 [0.6.0]: https://github.com/matthewdeanmartin/troml_dev_status/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/matthewdeanmartin/troml_dev_status/compare/v0.4.2...v0.5.0

@@ -22,6 +22,11 @@ class Config(BaseModel):
 
     mode: Literal["application", "library"] = Field(default="application")
     use_ai: bool = Field(default=DEFAULT_USE_AI)
+    # When true, a project with no PyPI release history is not floored to
+    # "1 - Planning"; the code-quality signals drive the inference instead.
+    # Useful as a pre-publish gate for a first release. See also the
+    # `--allow-first-release` CLI flag.
+    allow_first_release: bool = Field(default=False)
 
 
 def _load_pyproject_toml(repo_path: Path) -> Dict[str, Any] | None:
