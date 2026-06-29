@@ -104,7 +104,6 @@ endif
 .PHONY: metadata
 metadata:
 	$(VENV) metametameta pep621
-	$(VENV) ./scripts/make_source.sh
 
 .PHONY: metadata-check
 metadata-check:
