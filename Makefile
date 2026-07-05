@@ -204,7 +204,7 @@ check_spelling:
 
 .PHONY: check_changelog
 check_changelog:
-	$(VENV) changelogmanager validate
+	$(VENV) kaclm validate
 
 .PHONY: check_all_docs
 check_all_docs: check_docs check_md check_spelling check_changelog
