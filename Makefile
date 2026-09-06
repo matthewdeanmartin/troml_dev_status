@@ -172,6 +172,34 @@ dog_food:
 check: lint-check security test mypy metadata-check version-check update_dev_status dog_food
 	@echo "All checks passed."
 
+# ── Python 3.15 trial run ─────────────────────────────────────────────────────
+# Uses a dedicated venv so the normal .venv is never touched.
+
+PY315 := 3.15.0rc2
+VENV315 := .venv315rc2
+PY315_EXE := $(VENV315)/Scripts/python.exe
+
+.PHONY: venv315
+venv315:
+	@echo "Creating Python $(PY315) trial venv at $(VENV315)"
+	@test -x $(PY315_EXE) || uv venv $(VENV315) --python $(PY315)
+	uv pip install -e . pytest pytest-cov pytest-timeout pytest-mock --python $(PY315_EXE)
+
+.PHONY: venv315-clean
+venv315-clean:
+	@echo "Recreating Python $(PY315) trial venv from scratch"
+	uv venv $(VENV315) --python $(PY315) --clear
+	@$(MAKE) venv315
+
+.PHONY: test315
+test315: venv315
+	@echo "Running unit tests on Python $(PY315)"
+	$(PY315_EXE) -m pytest test -q --timeout=60 -p no:randomly -p no:sugar
+
+.PHONY: check315
+check315: test315
+	@echo "Python $(PY315) checks passed."
+
 .PHONY: check-ci
 check-ci: lint-check security test-ci mypy metadata-check version-check
 	@echo "CI checks passed."
