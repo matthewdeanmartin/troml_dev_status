@@ -3,8 +3,8 @@ from __future__ import annotations
 
 import os
 import re
+from collections.abc import Iterable, Iterator
 from pathlib import Path
-from typing import Iterable, Iterator, Set
 
 import pathspec
 
@@ -50,7 +50,7 @@ def iter_repo_files(repo_path: Path, follow_symlinks: bool = False) -> Iterator[
       - .git, .venv, venv, node_modules, __pycache__, etc.
       - Anything ignored by .gitignore (if present).
     """
-    skip_dirs: Set[str] = {
+    skip_dirs: set[str] = {
         ".git",
         ".hg",
         ".svn",
@@ -93,14 +93,13 @@ _VENV_NAME_RE = re.compile(r"^(?:\.?venv|\.?env)(?:[-._]?\w+)*$", re.IGNORECASE)
 
 
 def os_walk_no_follow(start: Path) -> Iterator[tuple[str, list[str], list[str]]]:
-    for root, dirs, files in os.walk(start, topdown=True, followlinks=False):
-        yield root, dirs, files
+    yield from os.walk(start, topdown=True, followlinks=False)
 
 
 def _git_toplevel(start: Path) -> Path:
     """Best-effort: return the git repo root; fall back to `start` if not found."""
     cur = start.resolve()
-    for p in [cur] + list(cur.parents):
+    for p in [cur, *list(cur.parents)]:
         if (p / ".git").exists():
             return p
     return start

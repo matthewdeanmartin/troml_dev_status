@@ -3,9 +3,9 @@ from __future__ import annotations
 
 import logging
 import os
+from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, Iterable, Mapping, Tuple
 
 from troml_dev_status.analysis import filesystem, pypi
 from troml_dev_status.analysis.bureaucracy import get_bureaucracy_files
@@ -79,7 +79,7 @@ def run_analysis(
     latest_version = sorted_versions[0] if sorted_versions else None
 
     # --- Checks Execution Phase ---
-    results: Dict[str, CheckResult] = {}
+    results: dict[str, CheckResult] = {}
     metrics = Metrics()
 
     # R-Checks (Release & Packaging)
@@ -195,7 +195,7 @@ def _filter_checks_for_mode(
 
 
 def _family_breakdown(
-    results: Mapping[str, "CheckResult"], active_ids: Iterable[str]
+    results: Mapping[str, CheckResult], active_ids: Iterable[str]
 ) -> ScoreCard:
     active = list(active_ids)
     total = len(active)
@@ -264,14 +264,14 @@ def _log_rule(rule_name: str, condition: bool, note: str = "") -> None:
 
 
 def determine_status(
-    results: Mapping[str, "CheckResult"],
+    results: Mapping[str, CheckResult],
     latest_version,  # kept for possible future use
-    metrics: "Metrics",
+    metrics: Metrics,
     venv_mode: bool = False,
     *,
     explain: bool = False,  # NEW (optional) – include detailed breakdown in the reason string
     allow_first_release: bool = False,  # NEW – skip the "no PyPI release" hard-floor to Planning
-) -> Tuple[str, str]:
+) -> tuple[str, str]:
     """
     Determine development status using ratio-based thresholds.
     Readability rule of thumb:

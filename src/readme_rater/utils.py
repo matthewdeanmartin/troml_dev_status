@@ -4,7 +4,7 @@
 from __future__ import annotations
 
 import hashlib
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 
 def now_utc() -> str:
@@ -14,7 +14,7 @@ def now_utc() -> str:
     Returns:
         str: The formatted UTC timestamp.
     """
-    return datetime.now(timezone.utc).isoformat()
+    return datetime.now(UTC).isoformat()
 
 
 def norm_hash(content: str) -> str:

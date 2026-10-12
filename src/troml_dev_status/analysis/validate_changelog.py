@@ -6,7 +6,7 @@ A standalone validator for changelog strings based on the 'Keep a Changelog' for
 import datetime
 import logging
 import re
-from typing import Iterable, List
+from collections.abc import Iterable
 
 import llvm_diagnostics
 from semantic_version import Version
@@ -40,7 +40,7 @@ class ChangelogValidator:
         """
         self._file_name = file_name
 
-    def validate(self, content: str) -> List[llvm_diagnostics.Error]:
+    def validate(self, content: str) -> list[llvm_diagnostics.Error]:
         """
         Validates the changelog content from a string.
 

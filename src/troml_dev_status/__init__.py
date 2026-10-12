@@ -28,14 +28,14 @@ from .engine import run_analysis
 from .models import CheckResult, EvidenceReport, Metrics
 
 __all__ = [
-    # Core analysis engine
-    "run_analysis",
-    # Data models for results
-    "EvidenceReport",
-    "CheckResult",
-    "Metrics",
     # Standalone utilities
     "ChangelogValidator",
+    "CheckResult",
+    # Data models for results
+    "EvidenceReport",
+    "Metrics",
+    # Core analysis engine
+    "run_analysis",
     # "evaluate_readme",
     # "RubricResult",
 ]

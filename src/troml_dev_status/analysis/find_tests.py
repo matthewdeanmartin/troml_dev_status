@@ -4,15 +4,15 @@ from __future__ import annotations
 import logging
 import subprocess  # nosec
 import unittest
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Iterable, List, Tuple
 
 from troml_dev_status.analysis.filesystem import find_src_dir
 
 logger = logging.getLogger(__name__)
 
 
-def _existing_dirs(repo_path: Path, candidate_dirs: Iterable[str]) -> List[Path]:
+def _existing_dirs(repo_path: Path, candidate_dirs: Iterable[str]) -> list[Path]:
     """Filter candidate dir names to ones that actually exist under repo_path."""
     return [repo_path / d for d in candidate_dirs if (repo_path / d).is_dir()]
 
@@ -111,7 +111,7 @@ def _count_pytest(repo_path: Path, start_dirs: Iterable[str]) -> int:
 def count_tests(
     repo_path: Path,
     start_dirs: Iterable[str] | None = None,
-) -> Tuple[str, int]:
+) -> tuple[str, int]:
     """
     Count tests discoverable by unittest; if none, try pytest.
 

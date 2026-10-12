@@ -14,7 +14,6 @@ import ast
 import configparser
 import os
 from pathlib import Path
-from typing import List, Optional, Set, Tuple
 
 from troml_dev_status.analysis.filesystem import find_src_dir, get_project_name
 from troml_dev_status.analysis.iter_the_files import _iter_files
@@ -34,12 +33,12 @@ except ImportError:
     import tomli as tomllib  # type: ignore[no-redef,import-not-found]
 
 import re
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 # ---- helpers ---------------------------------------------------------------
 
 
-_STD_LIB_MODULES: Set[str] = {
+_STD_LIB_MODULES: set[str] = {
     # trimmed; good enough heuristic for the "pointless content" check
     "os",
     "sys",
@@ -64,7 +63,7 @@ _STD_LIB_MODULES: Set[str] = {
 }
 
 
-def _read_text(path: Path) -> Optional[str]:
+def _read_text(path: Path) -> str | None:
     try:
         return path.read_text(encoding="utf-8")
     except UnicodeDecodeError:
@@ -88,7 +87,7 @@ def _nonempty_loc(text: str) -> int:
     return count
 
 
-def _module_ast(path: Path) -> Optional[ast.AST]:
+def _module_ast(path: Path) -> ast.AST | None:
     src = _read_text(path)
     if src is None:
         return None
@@ -114,9 +113,9 @@ def has_only_empty_init(repo_path: Path) -> bool:
     return True
 
 
-def package_dirs_missing_init(repo_path: Path) -> List[Path]:
+def package_dirs_missing_init(repo_path: Path) -> list[Path]:
     root = find_src_dir(repo_path) or repo_path
-    missing: List[Path] = []
+    missing: list[Path] = []
     for d in {p.parent for p in _iter_files(root)}:
         if (d / "__init__.py").exists():
             continue
@@ -159,7 +158,7 @@ def is_stub_func(node: ast.FunctionDef | ast.AsyncFunctionDef) -> bool:
     return False
 
 
-def stub_density(root: Path) -> Tuple[int, int, float]:
+def stub_density(root: Path) -> tuple[int, int, float]:
     stub = 0
     total = 0
     for path in _iter_files(root):
@@ -175,8 +174,8 @@ def stub_density(root: Path) -> Tuple[int, int, float]:
     return stub, total, density
 
 
-def top_level_imports(root: Path) -> Set[str]:
-    seen: Set[str] = set()
+def top_level_imports(root: Path) -> set[str]:
+    seen: set[str] = set()
     for path in _iter_files(root):
         mod = _module_ast(path)
         if mod is None:
@@ -184,7 +183,7 @@ def top_level_imports(root: Path) -> Set[str]:
         for node in mod.body:  # type: ignore[attr-defined]
             if isinstance(node, ast.Import):
                 for alias in node.names:
-                    seen.add((alias.name.split(".")[0]))
+                    seen.add(alias.name.split(".")[0])
             elif isinstance(node, ast.ImportFrom):
                 if node.module:
                     seen.add(node.module.split(".")[0])  # type: ignore[attr-defined]
@@ -264,7 +263,7 @@ def check_ds4_missing_package_init(repo_path: Path) -> CheckResult:
 
 def check_ds5_unparsable_python(repo_path: Path) -> CheckResult:
     """Fail if any .py fails AST parsing (syntax error or unreadable file)."""
-    bad: List[str] = []
+    bad: list[str] = []
     for p in _iter_files(repo_path):
         mod = _module_ast(p)
         if mod is None:
@@ -280,7 +279,7 @@ def check_ds5_unparsable_python(repo_path: Path) -> CheckResult:
 
 def check_ds6_py_extension_nonpython(repo_path: Path) -> CheckResult:
     """Fail if .py file appears binary/non-text or contains null bytes; heuristic for mislabeled content."""
-    bad: List[str] = []
+    bad: list[str] = []
     for p in _iter_files(repo_path):
         try:
             data = p.read_bytes()
@@ -359,7 +358,7 @@ def check_ds9_name_parking_signals(
     summary = (info.get("summary") or "").strip().lower()
 
     # find newest upload time
-    newest: Optional[datetime] = None
+    newest: datetime | None = None
     for files in releases.values():
         for f in files or []:
             t = f.get("upload_time_iso_8601") or f.get("upload_time")
@@ -372,7 +371,7 @@ def check_ds9_name_parking_signals(
             if (newest is None) or (dt > newest):
                 newest = dt
 
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     stale = (newest is None) or ((now - newest).days >= stale_days)
     boilerplate = (not summary) or summary in {
         "todo",
@@ -406,7 +405,7 @@ def check_ds9_name_parking_signals(
 # ---- checks: bad/missing metadata ------------------------------------------
 
 
-def _read_setup_cfg(repo_path: Path) -> Optional[configparser.ConfigParser]:
+def _read_setup_cfg(repo_path: Path) -> configparser.ConfigParser | None:
     cfg_path = repo_path / "setup.cfg"
     if not cfg_path.is_file():
         return None
@@ -415,7 +414,7 @@ def _read_setup_cfg(repo_path: Path) -> Optional[configparser.ConfigParser]:
     return cp
 
 
-def _get_version_from_files(repo_path: Path) -> Optional[str]:
+def _get_version_from_files(repo_path: Path) -> str | None:
     """Try version from pyproject.toml (PEP 621 / Poetry), then setup.cfg."""
     doc = load_pyproject_toml(repo_path)
     if doc:
@@ -438,7 +437,7 @@ def _get_version_from_files(repo_path: Path) -> Optional[str]:
     return None
 
 
-def _get_description_from_files(repo_path: Path) -> Optional[str]:
+def _get_description_from_files(repo_path: Path) -> str | None:
     """Try description from pyproject.toml (PEP 621 / Poetry), then setup.cfg."""
     doc = load_pyproject_toml(repo_path)
     if doc:
@@ -461,7 +460,7 @@ def _get_description_from_files(repo_path: Path) -> Optional[str]:
     return None
 
 
-def _get_version_from_dist(dist_name: str) -> Optional[str]:
+def _get_version_from_dist(dist_name: str) -> str | None:
     try:
         return _im.version(dist_name)
     except _im.PackageNotFoundError:
@@ -470,7 +469,7 @@ def _get_version_from_dist(dist_name: str) -> Optional[str]:
         return None
 
 
-def _get_description_from_dist(dist_name: str) -> Optional[str]:
+def _get_description_from_dist(dist_name: str) -> str | None:
     try:
         dist = _im.distribution(dist_name)
     except _im.PackageNotFoundError:
@@ -499,11 +498,11 @@ def check_ds10_core_metadata_present(
     if os.environ.get("TROML_DEV_STATUS_VENV_MODE"):
         venv_mode = True
     # Resolve name first (uses both files and installed dist according to venv_mode).
-    name: Optional[str] = get_project_name(repo_path, venv_mode=venv_mode)
+    name: str | None = get_project_name(repo_path, venv_mode=venv_mode)
 
     # Resolve version & description according to venv_mode preference, with final fallback.
-    version: Optional[str] = None
-    description: Optional[str] = None
+    version: str | None = None
+    description: str | None = None
 
     if venv_mode:
         # Prefer installed dist first (if we have a name)
@@ -578,7 +577,7 @@ def check_ds11_pointless_content(repo_path: Path) -> CheckResult:
         if defs:
             any_defs = True
             continue
-        top_imports: Set[str] = set()
+        top_imports: set[str] = set()
         trivial = True
         for n in mod.body:  # type: ignore[attr-defined]
             if isinstance(n, ast.Import):
@@ -638,7 +637,7 @@ def check_ds12_declares_deps_but_never_imports(repo_path: Path) -> CheckResult:
     if not deps:
         return CheckResult(passed=True, evidence="No declared dependencies.")
 
-    req_names: Set[str] = set()
+    req_names: set[str] = set()
     for raw in deps:
         # crude parse: split at first space/comparator/; extra markers ignored
         name = re.split(r"[<>=!;\[ ]", raw, 1)[0].strip().lower().replace("-", "_")

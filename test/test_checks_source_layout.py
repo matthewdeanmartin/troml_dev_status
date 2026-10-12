@@ -59,11 +59,7 @@ def test_c3_application_mode_accepts_exact_mistune_range_example(
     write(
         tmp_path,
         "pyproject.toml",
-        (
-            "[project]\n"
-            'name = "demo-app"\n'
-            'dependencies = ["mistune>=2.0.0,<3.0.0"]\n'
-        ),
+        ('[project]\nname = "demo-app"\ndependencies = ["mistune>=2.0.0,<3.0.0"]\n'),
     )
 
     result = check_c3_minimal_pin_sanity(tmp_path, "application")

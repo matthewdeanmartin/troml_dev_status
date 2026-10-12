@@ -5,8 +5,9 @@ import ast
 import logging
 import re
 import sys
+from collections.abc import Iterable, Iterator
 from pathlib import Path
-from typing import Any, Iterable, Iterator
+from typing import Any
 
 from troml_dev_status.analysis.filesystem import find_src_dir
 from troml_dev_status.analysis.iter_the_files import _iter_files, iter_files2
@@ -117,7 +118,7 @@ def _function_body_is_single_raise_notimplemented(func: ast.AST) -> bool:
     if first_line and isinstance(first_line, str):
         first_line_is_str = True
 
-    if sys.version_info.minor >= 14:
+    if sys.version_info >= (3, 14):
         type_list: Any = (ast.Constant,)
     else:
         type_list = (ast.Str, ast.Constant)  # type: ignore[attr-defined]
@@ -161,7 +162,7 @@ def _function_body_is_only_pass(func: ast.AST) -> bool:
         first_line = getattr(stmts[0], "value", None)
         if first_line and isinstance(first_line, str):
             first_line_is_str = True
-    if sys.version_info.minor >= 14:
+    if sys.version_info >= (3, 14):
         type_list: Any = (ast.Constant,)
     else:
         type_list = (ast.Str, ast.Constant)  # type: ignore[attr-defined]
@@ -328,7 +329,7 @@ def _is_stub_file(path: Path) -> bool:
         first_line = getattr(module_body[0], "value", None)
         if first_line and isinstance(first_line, str):
             first_line_is_str = True
-    if sys.version_info.minor >= 14:
+    if sys.version_info >= (3, 14):
         type_list: Any = (ast.Constant,)
     else:
         type_list = (ast.Str, ast.Constant)  # type: ignore[attr-defined]
@@ -340,7 +341,7 @@ def _is_stub_file(path: Path) -> bool:
     ):
         module_body = module_body[1:]
 
-    if sys.version_info.major <= 3 and sys.version_info.minor < 14:
+    if sys.version_info < (3, 14):
         ellipsis = ast.Ellipsis  # type: ignore[attr-defined]
     else:
         ellipsis = (

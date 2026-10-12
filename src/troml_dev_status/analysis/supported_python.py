@@ -6,7 +6,6 @@ import json as _json
 import logging
 import re as _re
 from dataclasses import dataclass
-from typing import Dict, List, Optional, Tuple
 
 import httpx2
 
@@ -17,9 +16,9 @@ logger = logging.getLogger(__name__)
 class SupportedBranch:
     branch: str  # e.g. "3.12"
     latest: str  # e.g. "3.12.7"
-    eol_date: Optional[_dt.date]  # None means "not set" by source
-    phase: Optional[str]  # "bugfix" | "security" | None (unknown)
-    latest_release_date: Optional[_dt.date]
+    eol_date: _dt.date | None  # None means "not set" by source
+    phase: str | None  # "bugfix" | "security" | None (unknown)
+    latest_release_date: _dt.date | None
 
 
 @dataclass(frozen=True)
@@ -27,11 +26,11 @@ class PythonSupportInfo:
     as_of: _dt.date
     latest_supported_branch: str  # e.g. "3.13"
     latest_supported_version: str  # e.g. "3.13.1"
-    branches: List[SupportedBranch]  # all supported branches
-    sources: List[str]  # URLs used
+    branches: list[SupportedBranch]  # all supported branches
+    sources: list[str]  # URLs used
 
 
-def _parse_iso_date(value: Optional[str]) -> Optional[_dt.date]:
+def _parse_iso_date(value: str | None) -> _dt.date | None:
     if not value:
         return None
     try:
@@ -40,7 +39,7 @@ def _parse_iso_date(value: Optional[str]) -> Optional[_dt.date]:
         return None
 
 
-def _is_supported(eol_field: Optional[str], today: _dt.date) -> bool:
+def _is_supported(eol_field: str | None, today: _dt.date) -> bool:
     """
     endoflife.date uses either an ISO date (YYYY-MM-DD) or 'false' to indicate
     not EOL yet. Treat 'false' or a date in the future as supported.
@@ -57,7 +56,7 @@ def _is_supported(eol_field: Optional[str], today: _dt.date) -> bool:
         return False
 
 
-def _devguide_phase_map(client: httpx2.Client) -> Dict[str, str]:
+def _devguide_phase_map(client: httpx2.Client) -> dict[str, str]:
     """
     Best-effort parse of https://devguide.python.org/versions/ to map
     minor branches (e.g. '3.13') to 'bugfix' or 'security'. If the page format
@@ -72,13 +71,13 @@ def _devguide_phase_map(client: httpx2.Client) -> Dict[str, str]:
         # Rough parse: rows like:
         # <tr><td>3.13</td><td>...</td><td>bugfix</td>...</tr>
         # We'll look for branch and a status word nearby.
-        phase_map: Dict[str, str] = {}
+        phase_map: dict[str, str] = {}
 
         # Collapse whitespace to simplify regex matching.
         compact = _re.sub(r"\s+", " ", html)
 
         # Find table rows that likely contain version info.
-        for m in _re.finditer(r"<tr>(.*?)</tr>", compact, flags=_re.I):
+        for m in _re.finditer(r"<tr>(.*?)</tr>", compact, flags=_re.IGNORECASE):
             row = m.group(1)
             # Try to extract a branch like 3.12, 3.13, 3.14
             v = _re.search(r">\s*(3\.\d+)\s*<", row)
@@ -87,7 +86,7 @@ def _devguide_phase_map(client: httpx2.Client) -> Dict[str, str]:
             branch = v.group(1)
             # Look for a status keyword in the row
             status_match = _re.search(
-                r"(bugfix|security|pre-release|prerelease)", row, flags=_re.I
+                r"(bugfix|security|pre-release|prerelease)", row, flags=_re.IGNORECASE
             )
             if status_match:
                 phase = (
@@ -121,7 +120,7 @@ def get_supported_python_versions(
         PythonSupportInfo with a normalized, machine-friendly view.
     """
     today = _dt.date.today()
-    sources: List[str] = ["https://endoflife.date/api/python.json"]
+    sources: list[str] = ["https://endoflife.date/api/python.json"]
 
     with httpx2.Client(
         http2=http2,
@@ -145,7 +144,7 @@ def get_supported_python_versions(
             raise RuntimeError("No supported Python branches found from endoflife.date")
 
         # Sort cycles numerically by (major, minor)
-        def _cycle_key(cycle: str) -> Tuple[int, int]:
+        def _cycle_key(cycle: str) -> tuple[int, int]:
             # cycles are like "3.12", "3.13"
             try:
                 major, minor = cycle.split(".")
@@ -164,7 +163,7 @@ def get_supported_python_versions(
         sources.append("https://devguide.python.org/versions/")
         phase_map = _devguide_phase_map(client)
 
-        branches: List[SupportedBranch] = []
+        branches: list[SupportedBranch] = []
         for row in supported_rows:
             cycle = row["cycle"]
             eol_date = None

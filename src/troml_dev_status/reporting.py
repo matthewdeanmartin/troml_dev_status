@@ -5,7 +5,7 @@ import json
 import logging
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import jinja2
 import tomlkit
@@ -114,8 +114,8 @@ def print_human_report(report: EvidenceReport):
 # ---------------- shared helpers ----------------
 
 
-def _checks_as_rows(report: EvidenceReport) -> List[Dict[str, Any]]:
-    rows: List[Dict[str, Any]] = []
+def _checks_as_rows(report: EvidenceReport) -> list[dict[str, Any]]:
+    rows: list[dict[str, Any]] = []
     for check_id_full in sorted(report.checks.keys()):
         result = report.checks[check_id_full]
         base_check_id = check_id_full.split(" ")[0]
@@ -131,7 +131,7 @@ def _checks_as_rows(report: EvidenceReport) -> List[Dict[str, Any]]:
     return rows
 
 
-def _write_or_stdout(text: str, to_path: Optional[Path] = None) -> None:
+def _write_or_stdout(text: str, to_path: Path | None = None) -> None:
     if to_path:
         Path(to_path).parent.mkdir(parents=True, exist_ok=True)
         Path(to_path).write_text(text, encoding="utf-8")
@@ -154,7 +154,7 @@ def render_simple(
     """
     rows = _checks_as_rows(report)
     # header
-    lines: List[str] = []
+    lines: list[str] = []
     title = f"Development Status Analysis — {report.project_name}"
     lines.append(title)
     lines.append("=" * len(title))
@@ -303,7 +303,7 @@ def render_vt100(
     def c(s: str, code: str) -> str:
         return f"{code}{s}{RESET}" if use_color else s
 
-    lines: List[str] = []
+    lines: list[str] = []
     title = f"Development Status — {report.project_name}"
     lines.append(c(title, BOLD + FG_CYAN))
     lines.append("-" * len(title))

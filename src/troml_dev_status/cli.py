@@ -5,8 +5,8 @@ from __future__ import annotations
 import argparse
 import logging
 import sys
+from collections.abc import Sequence
 from pathlib import Path
-from typing import Sequence
 
 import dotenv
 from rich.console import Console
@@ -312,7 +312,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         argv_list = list(argv) if argv is not None else sys.argv[1:]
         args = parser.parse_args(["analyze", *argv_list])
 
-    if getattr(args, "verbose"):
+    if args.verbose:
         configure_logging(logging.DEBUG)
 
     return args.func(args, console)

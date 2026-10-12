@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import logging
 from datetime import datetime
-from typing import Dict, Optional
 
 from pydantic import BaseModel, Field
 
@@ -21,15 +20,15 @@ class CheckResult(BaseModel):
 class Metrics(BaseModel):
     """A collection of quantifiable data points gathered during analysis."""
 
-    eps_score: Optional[int] = None
-    eps_total: Optional[int] = None
-    public_symbols_latest: Optional[int] = None
+    eps_score: int | None = None
+    eps_total: int | None = None
+    public_symbols_latest: int | None = None
     # public_symbols_previous: Optional[int] = None
     # removed_symbols_percent: Optional[float] = None
-    tests_count: Optional[int] = None
-    src_modules_count: Optional[int] = None
-    type_annotation_coverage: Optional[float] = None
-    readme_word_count: Optional[int] = None
+    tests_count: int | None = None
+    src_modules_count: int | None = None
+    type_annotation_coverage: float | None = None
+    readme_word_count: int | None = None
 
 
 class EvidenceReport(BaseModel):
@@ -39,5 +38,5 @@ class EvidenceReport(BaseModel):
     reason: str
     project_name: str
     evaluated_at: datetime = Field(default_factory=datetime.utcnow)
-    checks: Dict[str, CheckResult]
+    checks: dict[str, CheckResult]
     metrics: Metrics

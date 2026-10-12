@@ -5,7 +5,6 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
-from typing import Optional
 
 from pydantic import BaseModel, Field
 from pydantic_settings import (
@@ -19,7 +18,7 @@ from pydantic_settings import (
 class LLMSettings(BaseModel):
     """Configuration for the LLM client."""
 
-    api_key: Optional[str] = Field(None, description="API key for the LLM service.")
+    api_key: str | None = Field(None, description="API key for the LLM service.")
     model: str = Field(
         "openai/gpt-4o", description="The model identifier to use for the API call."
     )

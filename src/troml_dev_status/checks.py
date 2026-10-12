@@ -9,7 +9,7 @@ import ast
 import logging
 import os
 import re
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 from packaging.requirements import InvalidRequirement, Requirement
@@ -93,7 +93,7 @@ def check_r4_recent_activity(
         return CheckResult(passed=False, evidence="Latest release missing upload time.")
 
     upload_time = datetime.fromisoformat(upload_time_str)
-    age = datetime.now(timezone.utc) - upload_time
+    age = datetime.now(UTC) - upload_time
     days = age.days
 
     if age < timedelta(days=months * 30.5):
@@ -329,7 +329,7 @@ def check_q9_changelog_validates(repo_path: Path) -> CheckResult:
         validator = ChangelogValidator(file_name=str(chagelog_path))
         result = validator.validate(content=content)
 
-        suggestions = "\n".join((_.message for _ in result))
+        suggestions = "\n".join(_.message for _ in result)
 
         if len(result) == 0:
             return CheckResult(
@@ -363,7 +363,7 @@ def check_m1_project_age(pypi_data: dict) -> CheckResult:
             passed=False, evidence="Could not determine first release date."
         )
 
-    age = datetime.now(timezone.utc) - first_upload_time
+    age = datetime.now(UTC) - first_upload_time
     if age > timedelta(days=90):
         return CheckResult(
             passed=True, evidence=f"Project is {age.days} days old (>= 90)."
@@ -389,7 +389,7 @@ def check_m2_code_motion(repo_path: Path, months: int) -> CheckResult:
             evidence=f"No commits found in source directory '{src_dir_rel_path}'.",
         )
 
-    age = datetime.now(timezone.utc) - last_commit
+    age = datetime.now(UTC) - last_commit
     days = age.days
 
     if age < timedelta(days=months * 30.5):
@@ -707,11 +707,7 @@ def check_s1_all_exports(repo_path: Path) -> CheckResult:
             ),
         )
 
-    files_with_all = [
-        _rel_path(repo_path, f)
-        for f in py_files
-        if has_all_exports(f)
-    ]
+    files_with_all = [_rel_path(repo_path, f) for f in py_files if has_all_exports(f)]
     logger.debug(
         "S1 __all__ check: files=%s scope=%s matches=%s",
         len(py_files),

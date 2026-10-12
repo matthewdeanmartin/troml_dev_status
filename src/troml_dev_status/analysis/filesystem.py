@@ -20,10 +20,11 @@ import configparser
 import logging
 import os
 import re
+from collections.abc import Iterable
 from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
-from typing import Any, Iterable, Optional
+from typing import Any
 
 import tomlkit
 from tomlkit.items import Table
@@ -214,7 +215,7 @@ def _candidate_dist_names(
 
 def _find_distribution_by_candidates(
     candidates: Iterable[str],
-) -> Optional[_im.Distribution]:
+) -> _im.Distribution | None:
     """
     Return the first importlib.metadata Distribution whose name matches any candidate
     (case-insensitive, normalized).
@@ -315,7 +316,7 @@ def _update_classifiers_in_toml_table(table: Table, new_classifier: str) -> None
             classifiers.insert(0, item)  # type: ignore[attr-defined]
         classifiers.insert(0, new_classifier)  # type: ignore[attr-defined]
     else:  # Fallback for plain list
-        table["classifiers"] = [new_classifier] + to_keep
+        table["classifiers"] = [new_classifier, *to_keep]
 
 
 # --- Public API ----------------------------------------------------------------
@@ -395,7 +396,7 @@ def set_dev_status_classifier(
     if pyproject_path.is_file():
         doc = load_pyproject_toml(repo_path)
         if not doc:
-            raise IOError(f"Could not parse {pyproject_path}")
+            raise OSError(f"Could not parse {pyproject_path}")
         if not tomlkit:
             raise RuntimeError("tomlkit is required to safely update pyproject.toml.")
 
@@ -414,7 +415,7 @@ def set_dev_status_classifier(
     if setup_cfg_path.is_file():
         config = _load_setup_cfg(repo_path)
         if not config:
-            raise IOError(f"Could not parse {setup_cfg_path}")
+            raise OSError(f"Could not parse {setup_cfg_path}")
 
         if not config.has_section("metadata"):
             config.add_section("metadata")
@@ -423,7 +424,7 @@ def set_dev_status_classifier(
         classifiers = [c.strip() for c in raw_classifiers.split("\n") if c.strip()]
 
         to_keep = [c for c in classifiers if not c.startswith(DEV_STATUS_PREFIX)]
-        new_list = [new_classifier] + to_keep
+        new_list = [new_classifier, *to_keep]
 
         # setup.cfg expects a newline-separated string
         config.set("metadata", "classifiers", "\n" + "\n".join(new_list))
@@ -692,7 +693,7 @@ def has_multi_python_in_ci(ci_files: list[Path]) -> bool:
             for version in versions_to_check:
                 if version in content:
                     py_versions.add(version)
-        except IOError:
+        except OSError:
             continue
     return len(py_versions) >= 2
 

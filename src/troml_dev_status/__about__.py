@@ -17,7 +17,11 @@ __version__ = "0.7.0"
 __keywords__ = ["development status", "trove classifiers", "python packaging"]
 __description__ = "Objectively infer PyPI Development Status classifiers from code and release artifacts."
 __readme__ = "README.md"
-__credits__ = [{"name": "Matthew Dean Martin", "email": "matthewdeanmartin@gmail.com"}, {"name": "Gemini"}, {"name": "ChatGPT"}]
+__credits__ = [
+    {"name": "Matthew Dean Martin", "email": "matthewdeanmartin@gmail.com"},
+    {"name": "Gemini"},
+    {"name": "ChatGPT"},
+]
 __requires_python__ = ">=3.9"
 __status__ = "5 - Production/Stable"
 __dependencies__ = [

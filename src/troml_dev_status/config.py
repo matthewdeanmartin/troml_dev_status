@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Dict, Literal
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
@@ -29,7 +29,7 @@ class Config(BaseModel):
     allow_first_release: bool = Field(default=False)
 
 
-def _load_pyproject_toml(repo_path: Path) -> Dict[str, Any] | None:
+def _load_pyproject_toml(repo_path: Path) -> dict[str, Any] | None:
     """Loads the pyproject.toml file."""
     toml_path = repo_path / "pyproject.toml"
     if not toml_path.is_file():
@@ -42,7 +42,7 @@ def _load_pyproject_toml(repo_path: Path) -> Dict[str, Any] | None:
 
 
 # Global config cache to avoid re-reading the file multiple times
-_config_cache: Dict[Path, Config] = {}
+_config_cache: dict[Path, Config] = {}
 
 
 def load_config(repo_path: Path) -> Config:

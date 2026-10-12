@@ -9,15 +9,13 @@ authors = [
     { name = "Gemini" },
     { name = "ChatGPT" },
 ]
-requires-python = ">=3.9"
+requires-python = ">=3.11"
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Environment :: Console",
     "Framework :: Pydantic",
     "Intended Audience :: Developers",
     "Programming Language :: Python",
-    "Programming Language :: Python :: 3.9",
-    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
@@ -42,7 +40,6 @@ dependencies = [
     "httpx2[http2]>=2.0,<3",
     "pyyaml>=6.0.2",
     "packaging>=25.0",
-    "tomli>1.0.0; python_version < '3.11'",
     "tomlkit>=0.13.3",
     "pathspec>=0.12.1",
     "llvm-diagnostics>=3.0.1",
@@ -62,16 +59,16 @@ dev = [
     "jiggle-version>=2.1.0",
     "keepachangelog-manager-fork[fast]>=6.8.0,<7; python_version < '3.15'",  # [fast] adds orjson+re2; google-re2 has no cp315 wheel on Windows
     "keepachangelog-manager-fork[stdlib]>=6.8.0,<7; python_version >= '3.15'",  # [stdlib] is pure-Python: same features, no native wheels needed
-    "dont-be-lazy>=0.1.2; python_version >= '3.10'",
-    "pydoc-fork>=3.0.0; python_version >= '3.10'",
+    "dont-be-lazy>=0.1.2",
+    "pydoc-fork>=3.0.0",
 
     "pip-licenses",
 #    "toml-formatter",
     "bitrab",
     "types-PyYAML",
-    "troml;python_version>='3.11'",
+    "troml",
     "cli-tool-audit",
-    "git2md; python_version >= '3.10'",
+    "git2md",
     "pyclean; python_version >= '3.12'",
     "strip-docs>=1.0; python_version >= '3.12'",
     "gha-update; python_version >= '3.12'",
@@ -79,42 +76,42 @@ dev = [
     "mkdocs<2; python_version >= '3.12'",
     "mdformat",
     # plugin finder
-    "packaging; python_version >= '3.8'",
+    "packaging",
     # mpy
     "types-retry",
     "types-Markdown",
-    "mypy; python_version >= '3.8'",
-    "types-toml; python_version >= '3.8'",
+    "mypy",
+    "types-toml",
     # reports
 
     # build
-    "vermin; python_version >= '3.8'",
-    "metametameta>=0.1.14; python_version >= '3.9'",
-    "hatchling; python_version >= '3.8'",
-    "ruff>=0.12.0; python_version >= '3.8'",
-    "pylint; python_version >= '3.8'",
-    "bandit; python_version >= '3.8'",
+    "vermin",
+    "metametameta>=0.1.14",
+    "hatchling",
+    "ruff>=0.12.0",
+    "pylint",
+    "bandit",
     "bandit>=1.8.6; python_version >= '3.14'",
-    "pre-commit; python_version >= '3.8'",
+    "pre-commit",
     # testing tools
-    "pytest; python_version >= '3.8'",
-    "pytest-cov; python_version >= '3.8'",
-    "pytest-xdist>=3.5.0; python_version >= '3.8'",
-    "pytest-randomly>=3.15.0; python_version >= '3.8'",
-    "pytest-sugar>=0.9.7; python_version >= '3.8'",
-    "pytest-mock; python_version >= '3.8'",
-    # "pytest-unused-whichfixtures; python_version >= '3.10'",
-    "hypothesis[cli]; python_version >= '3.8'",
+    "pytest",
+    "pytest-cov",
+    "pytest-xdist>=3.5.0",
+    "pytest-randomly>=3.15.0",
+    "pytest-sugar>=0.9.7",
+    "pytest-mock",
+    # "pytest-unused-whichfixtures",
+    "hypothesis[cli]",
     "detect-test-pollution",
     "pytest-timeout>=2.4.0",
     # docs
-    "interrogate>=1.5.0; python_version >= '3.8'",
-    "pydoctest==0.2.1; python_version >= '3.8'",
-    "pdoc3>=0.5.0; python_version >= '3.8'",
-    "mdformat>=0.5.0; python_version >= '3.8'",
-    "linkcheckmd>=1.4.0; python_version >= '3.8'",
-    "codespell>=2.2.6; python_version >= '3.8'",
-    "pyenchant>=3.2.2; python_version >= '3.8'",
+    "interrogate>=1.5.0",
+    "pydoctest==0.2.1",
+    "pdoc3>=0.5.0",
+    "mdformat>=0.5.0",
+    "linkcheckmd>=1.4.0",
+    "codespell>=2.2.6",
+    "pyenchant>=3.2.2",
 ]
 
 [project.urls]
@@ -201,3 +198,6 @@ changelog = "CHANGELOG.md"
 
 [tool.uv.pip]
 universal = true
+
+[tool.ruff.lint]
+ignore = ["RUF100", "BLE001", "FURB162", "LOG015", "S110", "S112", "SIM102", "SIM103", "TRY004"]  # unused noqa differs across Python versions

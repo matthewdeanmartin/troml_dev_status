@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
 import httpx2
 from packaging.version import InvalidVersion, Version
@@ -39,7 +39,7 @@ def get_sorted_versions(pypi_data: dict) -> list[Version]:
     return sorted(versions, reverse=True)
 
 
-def latest_release_files(pypi_json: Dict[str, Any]) -> Tuple[str, List[Dict[str, Any]]]:
+def latest_release_files(pypi_json: dict[str, Any]) -> tuple[str, list[dict[str, Any]]]:
     # `info.version` is the latest release according to PyPI’s JSON API
     version = pypi_json["info"]["version"]
     files = pypi_json.get("releases", {}).get(version, [])
@@ -48,7 +48,7 @@ def latest_release_files(pypi_json: Dict[str, Any]) -> Tuple[str, List[Dict[str,
 
 def file_has_attestations(
     project: str, version: str, filename: str
-) -> Tuple[bool, Dict[str, Any] | None]:
+) -> tuple[bool, dict[str, Any] | None]:
     url = f"https://pypi.org/integrity/{project}/{version}/{filename}/provenance"
     headers = {"Accept": INTEGRITY_ACCEPT}
     try:
@@ -68,7 +68,7 @@ def file_has_attestations(
         return False, None
 
 
-def latest_release_has_attestations(project: str) -> Dict[str, Any] | None:
+def latest_release_has_attestations(project: str) -> dict[str, Any] | None:
     """
     Returns a dict like:
     {

@@ -14,8 +14,7 @@ import json
 import os
 import re
 import sys
-from datetime import datetime, timezone
-from typing import Dict, List
+from datetime import UTC, datetime
 
 # --- Rubric definitions (IDs only; semantics implied) ---
 CORE = [
@@ -38,7 +37,7 @@ STATE_JSON = ".readme_rater.state.json"  # convergence cache (tiny, pragmatic)
 
 # --- Small helpers ---
 def now_utc() -> str:
-    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    return datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
 def read_text(p: str) -> str:
@@ -66,7 +65,7 @@ def save_state(obj: dict) -> None:
 
 
 # --- Toy heuristics standing in for the LLM ---
-def toy_llm_assess(readme: str, ids: List[str]) -> List[Dict[str, str]]:
+def toy_llm_assess(readme: str, ids: list[str]) -> list[dict[str, str]]:
     r = readme.lower()
 
     def present(*ks):
@@ -163,15 +162,15 @@ def toy_llm_assess(readme: str, ids: List[str]) -> List[Dict[str, str]]:
 
 
 # --- Scoring ---
-def compute_score(rubric_results: List[Dict[str, str]]) -> int:
+def compute_score(rubric_results: list[dict[str, str]]) -> int:
     core = [x for x in rubric_results if x["id"] in CORE and x["status"] != "na"]
     extra = [x for x in rubric_results if x["id"] in EXTRA and x["status"] == "pass"]
     if core:
         core_pass = sum(1 for x in core if x["status"] == "pass")
-        core_score = int(round((core_pass / len(core)) * 80))
+        core_score = round((core_pass / len(core)) * 80)
     else:
         core_score = 0
-    extra_score = int(round((len(extra) / len(EXTRA)) * 20)) if EXTRA else 0
+    extra_score = round((len(extra) / len(EXTRA)) * 20) if EXTRA else 0
     return min(100, core_score + extra_score)
 
 
@@ -184,7 +183,7 @@ def qual_label(n: int) -> str:
 
 
 # --- Convergence selection ---
-def select_ids_for_check(prev: dict, full_refresh: bool) -> List[str]:
+def select_ids_for_check(prev: dict, full_refresh: bool) -> list[str]:
     if full_refresh or not prev:
         return CORE + EXTRA
     prev_results = {x["id"]: x for x in prev.get("rubric_results", [])}
@@ -197,7 +196,7 @@ def select_ids_for_check(prev: dict, full_refresh: bool) -> List[str]:
 
 
 # --- TOML emission (tiny manual) ---
-def to_toml(readme_hash: str, score: int, results: List[Dict[str, str]]) -> str:
+def to_toml(readme_hash: str, score: int, results: list[dict[str, str]]) -> str:
     lines = []
     lines.append("[rating]")
     lines.append(f'overall_score = "{qual_label(score)}"')
@@ -207,15 +206,15 @@ def to_toml(readme_hash: str, score: int, results: List[Dict[str, str]]) -> str:
     for r in results:
         lines.append("")
         lines.append("[[rubric_results]]")
-        lines.append(f"id = \"{r['id']}\"")
-        lines.append(f"status = \"{r['status']}\"")
+        lines.append(f'id = "{r["id"]}"')
+        lines.append(f'status = "{r["status"]}"')
         advice = r["advice"].replace('"', '\\"')
         lines.append(f'advice = "{advice}"')
     return "\n".join(lines) + "\n"
 
 
 # --- Main ---
-def main(argv: List[str]) -> int:
+def main(argv: list[str]) -> int:
     full = "--full-refresh" in argv
     path = "README.md"
     if not os.path.exists(path):
@@ -230,7 +229,7 @@ def main(argv: List[str]) -> int:
     new_partial = toy_llm_assess(readme, ids)
 
     # merge with previous passes
-    merged: Dict[str, Dict[str, str]] = {
+    merged: dict[str, dict[str, str]] = {
         x["id"]: x for x in prev.get("rubric_results", [])
     }
     for x in new_partial:

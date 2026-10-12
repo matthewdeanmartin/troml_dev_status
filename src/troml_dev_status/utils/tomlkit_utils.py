@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
-from typing import Any, Union
+from typing import Any
 
 import tomlkit
 
@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 def load_pyproject_toml(
     repo_path: Path,
-) -> Union[dict[str, Any], "tomlkit.TOMLDocument"] | None:
+) -> dict[str, Any] | tomlkit.TOMLDocument | None:
     """Load pyproject.toml using tomlkit if available, else tomllib."""
     pyproject_path = repo_path / "pyproject.toml"
     if not pyproject_path.is_file():
@@ -35,7 +35,7 @@ def load_pyproject_toml(
 
 
 def dump_pyproject_toml(
-    repo_path: Path, doc: Union[dict[str, Any], "tomlkit.TOMLDocument"]
+    repo_path: Path, doc: dict[str, Any] | tomlkit.TOMLDocument
 ) -> None:
     """Dump document to pyproject.toml, requiring tomlkit to preserve styles."""
     pyproject_path = repo_path / "pyproject.toml"

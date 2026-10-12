@@ -4,8 +4,9 @@ from __future__ import annotations
 import ast
 import logging
 import re
+from collections.abc import Iterable
 from dataclasses import dataclass, field
-from typing import Any, Dict, Iterable, List, Optional, Tuple
+from typing import Any
 
 import textstat
 
@@ -40,7 +41,7 @@ def enable_readme_eval_debug(level: int = logging.DEBUG) -> None:
 
 # Synonyms for sections we consider “expected”.
 # Keys are canonical section slugs; values are lists of synonyms (case-insensitive).
-SECTION_SYNONYMS: Dict[str, List[str]] = {
+SECTION_SYNONYMS: dict[str, list[str]] = {
     # NOTE: No points for Installation (per user requirement),
     # but we still detect it so we can *avoid* rewarding it.
     "overview": [
@@ -127,7 +128,7 @@ BADGE_PATTERNS = [
 ]
 
 # Specific badge classifiers
-SPECIFIC_BADGE_CHECKS: Dict[str, List[str]] = {
+SPECIFIC_BADGE_CHECKS: dict[str, list[str]] = {
     "pypi": [r"pypi\.org", r"/pypi/v/"],
     "ci": [r"actions", r"travis", r"circleci", r"appveyor", r"azure.*pipelines"],
     "coverage": [r"codecov", r"coveralls"],
@@ -158,8 +159,8 @@ class ScoreItem:
 class RubricResult:
     total: float
     max_possible: float
-    items: List[ScoreItem]
-    suggestions: List[str]
+    items: list[ScoreItem]
+    suggestions: list[str]
 
 
 # ---- parsing helpers ---------------------------------------------------------
@@ -174,7 +175,7 @@ HEADING_RE = re.compile(r"^(#{1,6})\s+(?P<title>.+?)\s*$", re.MULTILINE)
 IMAGE_LINK_RE = re.compile(r"!\[[^\]]*\]\((?P<url>[^)]+)\)")
 
 
-def extract_code_blocks(md: str) -> List[Tuple[str, str]]:
+def extract_code_blocks(md: str) -> list[tuple[str, str]]:
     """Return list of (lang, code) for fenced blocks."""
     blocks = [
         (m.group("lang").lower(), m.group("code")) for m in CODE_BLOCK_RE.finditer(md)
@@ -189,7 +190,7 @@ def extract_code_blocks(md: str) -> List[Tuple[str, str]]:
     return blocks
 
 
-def extract_headings(md: str) -> List[str]:
+def extract_headings(md: str) -> list[str]:
     """Return list of heading titles as they appear (no #)."""
     titles = [m.group("title").strip() for m in HEADING_RE.finditer(md)]
     logger.debug(
@@ -200,12 +201,12 @@ def extract_headings(md: str) -> List[str]:
     return titles
 
 
-def find_badge_urls(md: str) -> List[str]:
+def find_badge_urls(md: str) -> list[str]:
     """Return list of image URLs that look like badges."""
-    urls: List[str] = []
+    urls: list[str] = []
     for m in IMAGE_LINK_RE.finditer(md):
         url = m.group("url")
-        if any(re.search(p, url, flags=re.I) for p in BADGE_PATTERNS):
+        if any(re.search(p, url, flags=re.IGNORECASE) for p in BADGE_PATTERNS):
             urls.append(url)
     logger.debug(
         "find_badge_urls: scanned %d images, detected %d badge-like URLs",
@@ -219,10 +220,10 @@ def find_badge_urls(md: str) -> List[str]:
     return urls
 
 
-def heading_index(md: str) -> Dict[str, List[int]]:
+def heading_index(md: str) -> dict[str, list[int]]:
     """Map of normalized heading text -> list of indices where they occur (by appearance order)."""
     titles = extract_headings(md)
-    idx: Dict[str, List[int]] = {}
+    idx: dict[str, list[int]] = {}
     for i, t in enumerate(titles):
         s = _slug(t)
         idx.setdefault(s, []).append(i)
@@ -327,13 +328,13 @@ def score_code_blocks(md: str) -> ScoreItem:
     )
 
 
-def _classify_specific_badges(urls: List[str]) -> Dict[str, bool]:
-    specific = {k: False for k in SPECIFIC_BADGE_CHECKS.keys()}
+def _classify_specific_badges(urls: list[str]) -> dict[str, bool]:
+    specific = {k: False for k in SPECIFIC_BADGE_CHECKS}
     for url in urls:
         for cls, pats in SPECIFIC_BADGE_CHECKS.items():
             if specific[cls]:
                 continue
-            if any(re.search(p, url, flags=re.I) for p in pats):
+            if any(re.search(p, url, flags=re.IGNORECASE) for p in pats):
                 specific[cls] = True
                 logger.debug("_classify_specific_badges: matched %s via %s", cls, url)
     return specific
@@ -373,8 +374,8 @@ def score_badges(md: str) -> ScoreItem:
 
 
 def score_sections(md: str) -> ScoreItem:
-    present: List[str] = []
-    missing: List[str] = []
+    present: list[str] = []
+    missing: list[str] = []
 
     for canonical, syns in SECTION_SYNONYMS.items():
         found = contains_section(md, syns)
@@ -419,7 +420,7 @@ def score_sections(md: str) -> ScoreItem:
 def score_readability(md: str) -> ScoreItem:
     # Strip code fences for readability assessment
     text = CODE_BLOCK_RE.sub(" ", md)
-    grade: Optional[float] = None
+    grade: float | None = None
 
     if textstat is not None:
         try:
@@ -472,11 +473,13 @@ def score_readability(md: str) -> ScoreItem:
 
 def score_extras(md: str) -> ScoreItem:
     pts = 0.0
-    details: Dict[str, object] = {}
+    details: dict[str, object] = {}
 
     # Table of contents (very rough—common patterns)
-    toc_present = bool(re.search(r"\btable of contents\b", md, flags=re.I)) or bool(
-        re.search(r"^\s*-\s*\[.+?\]\(#.+?\)", md, flags=re.I | re.M)
+    toc_present = bool(
+        re.search(r"\btable of contents\b", md, flags=re.IGNORECASE)
+    ) or bool(
+        re.search(r"^\s*-\s*\[.+?\]\(#.+?\)", md, flags=re.IGNORECASE | re.MULTILINE)
     )
     if toc_present:
         pts += WEIGHTS["toc_present"]
@@ -492,8 +495,12 @@ def score_extras(md: str) -> ScoreItem:
     logger.debug("score_extras: examples_has_code=%s", examples_has_code)
 
     # Mention of Python version in text or badge
-    py_ver_mention = bool(re.search(r"\bpython\s*([3]\.\d{1,2}|\d+)\b", md, flags=re.I))
-    py_ver_badge = bool(re.search(r"pyversions|python-?version", md, flags=re.I))
+    py_ver_mention = bool(
+        re.search(r"\bpython\s*([3]\.\d{1,2}|\d+)\b", md, flags=re.IGNORECASE)
+    )
+    py_ver_badge = bool(
+        re.search(r"pyversions|python-?version", md, flags=re.IGNORECASE)
+    )
     if py_ver_mention or py_ver_badge:
         pts += WEIGHTS["python_version_info"]
     details["python_version_info"] = py_ver_mention or py_ver_badge
@@ -536,7 +543,7 @@ def evaluate_readme(md: str) -> RubricResult:
     )
 
     # Suggestions (lightweight, actionable)
-    suggestions: List[str] = []
+    suggestions: list[str] = []
 
     # Missing expected sections (except installation)
     sect_item = next(i for i in items if i.key == "sections")

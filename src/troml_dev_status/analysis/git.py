@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import logging
 import subprocess  # nosec
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 logger = logging.getLogger(__name__)
@@ -31,7 +31,7 @@ def get_latest_commit_date(repo_path: Path, sub_path: str = "src") -> datetime |
         repo_path, "log", "-1", "--format=%ct", "--", str(path_spec)
     )
     if output and output.isdigit():
-        return datetime.fromtimestamp(int(output), tz=timezone.utc)
+        return datetime.fromtimestamp(int(output), tz=UTC)
     return None
 
 

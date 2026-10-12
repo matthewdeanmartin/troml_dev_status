@@ -3,9 +3,10 @@ from __future__ import annotations
 
 import logging
 import re
+from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, Iterable, List, Mapping, Pattern, Set, Tuple
+from re import Pattern
 
 from troml_dev_status.analysis.iter_the_files import iter_repo_files
 
@@ -13,7 +14,7 @@ logger = logging.getLogger(__name__)
 # ---- categories we recognize -------------------------------------------------
 
 # Keep these stable so users can filter reliably.
-CATEGORIES: Tuple[str, ...] = (
+CATEGORIES: tuple[str, ...] = (
     "contributing",  # how to contribute
     "code_of_conduct",
     "security",
@@ -31,16 +32,16 @@ CATEGORIES: Tuple[str, ...] = (
 )
 
 # Extensions to consider, including "no extension" via empty string.
-DEFAULT_EXTS: Tuple[str, ...] = ("", ".md", ".markdown", ".rst", ".txt", ".adoc")
+DEFAULT_EXTS: tuple[str, ...] = ("", ".md", ".markdown", ".rst", ".txt", ".adoc")
 
 
 # Utility to build filename variants like "code-of-conduct", "code_of_conduct", "code of conduct"
-def _variants(base: str) -> List[str]:
+def _variants(base: str) -> list[str]:
     parts = re.split(r"[\s_\-\.\+]+", base.strip())
     if not parts:
         return []
     joins = ["-".join(parts), "_".join(parts), " ".join(parts), "".join(parts)]
-    return list(dict.fromkeys([base] + joins))  # dedupe, preserve order
+    return list(dict.fromkeys([base, *joins]))  # dedupe, preserve order
 
 
 # Spec for one pattern family
@@ -48,14 +49,14 @@ def _variants(base: str) -> List[str]:
 class PatternSpec:
     # Match against full POSIX path (e.g., ".github/FUNDING.yml") OR filename
     # Provide either filename variants or explicit path regexes.
-    filename_bases: Tuple[str, ...] = ()
-    path_regexes: Tuple[str, ...] = ()
-    exts: Tuple[str, ...] = DEFAULT_EXTS
+    filename_bases: tuple[str, ...] = ()
+    path_regexes: tuple[str, ...] = ()
+    exts: tuple[str, ...] = DEFAULT_EXTS
 
-    def compile(self) -> Tuple[List[Pattern[str]], List[Pattern[str]]]:
+    def compile(self) -> tuple[list[Pattern[str]], list[Pattern[str]]]:
         # Build case-insensitive regexes for filenames and full paths.
-        fname_regexes: List[Pattern[str]] = []
-        path_regexes: List[Pattern[str]] = []
+        fname_regexes: list[Pattern[str]] = []
+        path_regexes: list[Pattern[str]] = []
 
         # Filename patterns: cover hyphen/underscore/space/concat variants + extensions.
         for base in self.filename_bases:
@@ -90,7 +91,7 @@ class PatternSpec:
 
 
 # Master registry mapping categories to one or more PatternSpecs.
-PATTERNS: Mapping[str, Tuple[PatternSpec, ...]] = {
+PATTERNS: Mapping[str, tuple[PatternSpec, ...]] = {
     "contributing": (PatternSpec(filename_bases=("contributing", "contribute")),),
     "code_of_conduct": (
         PatternSpec(
@@ -180,15 +181,15 @@ PATTERNS: Mapping[str, Tuple[PatternSpec, ...]] = {
 def _compile_registry(
     include_categories: Iterable[str] | None,
     exclude_categories: Iterable[str] | None,
-) -> Dict[str, Tuple[List[Pattern[str]], List[Pattern[str]]]]:
-    include: Set[str] = set(include_categories or CATEGORIES)
-    exclude: Set[str] = set(exclude_categories or ())
+) -> dict[str, tuple[list[Pattern[str]], list[Pattern[str]]]]:
+    include: set[str] = set(include_categories or CATEGORIES)
+    exclude: set[str] = set(exclude_categories or ())
     active = sorted((include - exclude) & set(CATEGORIES))
 
-    compiled: Dict[str, Tuple[List[Pattern[str]], List[Pattern[str]]]] = {}
+    compiled: dict[str, tuple[list[Pattern[str]], list[Pattern[str]]]] = {}
     for cat in active:
-        fname_list: List[Pattern[str]] = []
-        path_list: List[Pattern[str]] = []
+        fname_list: list[Pattern[str]] = []
+        path_list: list[Pattern[str]] = []
         for spec in PATTERNS.get(cat, ()):
             f, p = spec.compile()
             fname_list.extend(f)
@@ -199,7 +200,7 @@ def _compile_registry(
 
 def _match_category(
     cat: str,
-    compiled: Mapping[str, Tuple[List[Pattern[str]], List[Pattern[str]]]],
+    compiled: Mapping[str, tuple[list[Pattern[str]], list[Pattern[str]]]],
     path: Path,
 ) -> bool:
     fname = path.name
@@ -215,7 +216,7 @@ def scan_bureaucracy(
     include_categories: Iterable[str] | None = None,
     exclude_categories: Iterable[str] | None = None,
     follow_symlinks: bool = False,
-) -> Dict[str, List[Path]]:
+) -> dict[str, list[Path]]:
     """
     Return a mapping of category -> list of Paths found.
 
@@ -238,8 +239,8 @@ def scan_bureaucracy(
                 break
 
     # sort results
-    for cat in found_by_cat:
-        found_by_cat[cat].sort(key=lambda x: x.as_posix().lower())
+    for paths in found_by_cat.values():
+        paths.sort(key=lambda x: x.as_posix().lower())
     return found_by_cat
 
 
@@ -250,7 +251,7 @@ def get_bureaucracy_files(
     repo_path: Path,
     categories: Iterable[str] | None = None,
     exclude_categories: Iterable[str] | None = None,
-) -> List[Path]:
+) -> list[Path]:
     """
     Drop-in replacement for your original function but expansive:
     returns a flat, deduped list of matching files.
@@ -264,7 +265,7 @@ def get_bureaucracy_files(
         repo_path, include_categories=categories, exclude_categories=exclude_categories
     )
     # Preserve deterministic order: category order then path order.
-    ordered: List[Path] = []
+    ordered: list[Path] = []
     for cat in CATEGORIES:
         if cat in mapping:
             ordered.extend(mapping[cat])
@@ -275,7 +276,7 @@ def summarize_bureaucracy(
     repo_path: Path,
     categories: Iterable[str] | None = None,
     exclude_categories: Iterable[str] | None = None,
-) -> Dict[str, int]:
+) -> dict[str, int]:
     """
     Convenience: category -> count.
     """

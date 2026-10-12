@@ -5,7 +5,6 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Optional
 
 import tomlkit
 
@@ -18,7 +17,7 @@ def get_state_path() -> Path:
     return config.get_cache_dir() / "readme_rater.state.json"
 
 
-def load_state() -> Optional[State]:
+def load_state() -> State | None:
     """
     Loads the cached state from the JSON file.
 
@@ -33,7 +32,7 @@ def load_state() -> Optional[State]:
         with open(state_path, "r", encoding="utf-8") as f:
             data = json.load(f)
             return State.model_validate(data)
-    except (json.JSONDecodeError, IOError):
+    except (OSError, json.JSONDecodeError):
         return None
 
 

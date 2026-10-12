@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import logging
 import re
-from typing import Dict, List, Sequence
+from collections.abc import Sequence
 
 from openai import OpenAI, OpenAIError
 
@@ -19,7 +19,7 @@ try:
 except Exception:  # pragma: no cover
     import tomli as _tomli  # type: ignore[no-redef]
 
-RUBRIC_DESCRIPTIONS: Dict[str, str] = {
+RUBRIC_DESCRIPTIONS: dict[str, str] = {
     "CLARITY_OF_PURPOSE": "Clear one-paragraph summary of purpose.",
     "QUICKSTART_INSTALL": "Copy-paste install command or obvious link.",
     "HELLO_WORLD_EXAMPLE": "Minimal runnable example of core use.",
@@ -121,12 +121,12 @@ def _looks_like_schema_echo(text: str) -> bool:
     return any(k in t for k in bad_markers)
 
 
-def _parse_toml_items(toml_text: str) -> List[RubricItem]:
+def _parse_toml_items(toml_text: str) -> list[RubricItem]:
     data = _tomli.loads(toml_text)
     blocks = data.get("rubric", [])
     if not isinstance(blocks, list):
         raise ValueError("TOML parse error: [[rubric]] must be an array of tables.")
-    out: List[RubricItem] = []
+    out: list[RubricItem] = []
     for b in blocks:
         out.append(
             RubricItem.model_validate(
@@ -143,7 +143,7 @@ def _parse_toml_items(toml_text: str) -> List[RubricItem]:
 # --- Public API (unchanged signature) ---
 
 
-def assess_readme(readme_content: str, ids_to_check: List[str]) -> List[RubricItem]:
+def assess_readme(readme_content: str, ids_to_check: list[str]) -> list[RubricItem]:
     if not config.settings.llm.api_key:
         raise ValueError("LLM API key is not configured.")
     if not ids_to_check:

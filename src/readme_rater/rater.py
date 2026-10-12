@@ -6,7 +6,6 @@ Main orchestrator for the README rating process.
 from __future__ import annotations
 
 import logging
-from typing import Dict, List
 
 from readme_rater import llm_client, rubric, scoring, state, utils
 from readme_rater.models import Rating, RubricItem, State
@@ -33,10 +32,10 @@ def _select_ids_for_check(
         logging.info("Performing a full refresh of all rubric items.")
         return all_ids
 
-    prev_results: Dict[str, RubricItem] = {
+    prev_results: dict[str, RubricItem] = {
         item.id: item for item in previous_state.rubric_results
     }
-    ids_to_check: List[str] = []
+    ids_to_check: list[str] = []
 
     for item_id in all_ids:
         prev_item = prev_results.get(item_id)
@@ -88,7 +87,7 @@ def rate_readme(readme_content: str, full_refresh: bool = False) -> Rating:
     new_results = llm_client.assess_readme(readme_content, ids_to_check)
 
     # Merge new results with previous passing results
-    merged_results_map: Dict[str, RubricItem] = {}
+    merged_results_map: dict[str, RubricItem] = {}
     if previous_state:
         for item in previous_state.rubric_results:
             if item.status != "fail":
