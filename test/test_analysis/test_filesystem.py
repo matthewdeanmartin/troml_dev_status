@@ -112,11 +112,11 @@ def test_get_project_dependencies_reads_poetry_dependencies(tmp_path: Path) -> N
 
             [tool.poetry.dependencies]
             python = ">=3.11"
-            httpx = "^0.28"
+            httpx2 = "^0.28"
             rich = ">=13"
             """),
     )
-    assert get_project_dependencies(tmp_path) == ["httpx", "rich"]
+    assert get_project_dependencies(tmp_path) == ["httpx2", "rich"]
 
 
 def test_get_project_dependencies_reads_setup_cfg_install_requires(
@@ -128,11 +128,11 @@ def test_get_project_dependencies_reads_setup_cfg_install_requires(
         textwrap.dedent("""
             [options]
             install_requires =
-                httpx>=0.28
+                httpx2>=0.28
                 rich
             """),
     )
-    assert get_project_dependencies(tmp_path) == ["httpx>=0.28", "rich"]
+    assert get_project_dependencies(tmp_path) == ["httpx2>=0.28", "rich"]
 
 
 def test_get_project_dependencies_bad_toml_returns_none(tmp_path: Path) -> None:

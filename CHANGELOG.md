@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+
+- Replace direct HTTPX clients with HTTPX2; current releases use the OS trust store; Python 3.9 selects the older HTTPX2 2.0 release.
+
 ## [0.7.0] - 2026-06-29
 ### Added
 - `validate`/`update` `--allow-first-release` flag (and `[tool.troml-dev-status] allow_first_release`) to infer from code quality instead of flooring to Planning when a project has no PyPI releases yet

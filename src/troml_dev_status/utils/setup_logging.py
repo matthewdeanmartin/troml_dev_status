@@ -40,5 +40,5 @@ def configure_logging(
     app_logger.setLevel(level)
 
     # Optionally silence specific noisy libraries even harder
-    for noisy in ["httpx", "urllib3", "asyncio"]:
+    for noisy in ["httpx2", "urllib3", "asyncio"]:
         logging.getLogger(noisy).setLevel(logging.WARNING)

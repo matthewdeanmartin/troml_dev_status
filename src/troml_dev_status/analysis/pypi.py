@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 from typing import Any, Dict, List, Tuple
 
-import httpx
+import httpx2
 from packaging.version import InvalidVersion, Version
 
 logger = logging.getLogger(__name__)
@@ -17,13 +17,13 @@ def get_project_data(project_name: str) -> dict | None:
     """Fetches the full JSON metadata for a project from PyPI."""
     url = f"https://pypi.org/pypi/{project_name}/json"
     try:
-        with httpx.Client() as client:
+        with httpx2.Client() as client:
             response = client.get(url, follow_redirects=True)
             if response.status_code == 404:
                 return None
             response.raise_for_status()
             return response.json()
-    except httpx.RequestError:
+    except httpx2.RequestError:
         # Handle network-related errors
         return None
 
@@ -52,7 +52,7 @@ def file_has_attestations(
     url = f"https://pypi.org/integrity/{project}/{version}/{filename}/provenance"
     headers = {"Accept": INTEGRITY_ACCEPT}
     try:
-        with httpx.Client(timeout=20) as client:
+        with httpx2.Client(timeout=20) as client:
             r = client.get(url, headers=headers)
             if r.status_code == 404:
                 # No provenance (no attestations) for this file
@@ -64,7 +64,7 @@ def file_has_attestations(
             bundles = data.get("attestation_bundles", [])
             has = any(b.get("attestations") for b in bundles)
             return has, data
-    except httpx.RequestError:
+    except httpx2.RequestError:
         return False, None
 
 

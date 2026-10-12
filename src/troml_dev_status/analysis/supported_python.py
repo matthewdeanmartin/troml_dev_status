@@ -8,7 +8,7 @@ import re as _re
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Tuple
 
-import httpx
+import httpx2
 
 logger = logging.getLogger(__name__)
 
@@ -57,7 +57,7 @@ def _is_supported(eol_field: Optional[str], today: _dt.date) -> bool:
         return False
 
 
-def _devguide_phase_map(client: httpx.Client) -> Dict[str, str]:
+def _devguide_phase_map(client: httpx2.Client) -> Dict[str, str]:
     """
     Best-effort parse of https://devguide.python.org/versions/ to map
     minor branches (e.g. '3.13') to 'bugfix' or 'security'. If the page format
@@ -123,7 +123,7 @@ def get_supported_python_versions(
     today = _dt.date.today()
     sources: List[str] = ["https://endoflife.date/api/python.json"]
 
-    with httpx.Client(
+    with httpx2.Client(
         http2=http2,
         headers={"User-Agent": "py-support-check/1.0"},
         follow_redirects=True,

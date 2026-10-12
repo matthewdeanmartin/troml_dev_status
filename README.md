@@ -176,3 +176,14 @@ See the [development_setup](https://github.com/matthewdeanmartin/troml_dev_statu
 - [Documentation](https://troml-dev-status.readthedocs.io/en/latest/)
 - [Bug Tracker](https://github.com/matthewdeanmartin/troml_dev_status/issues)
 - [Change Log](https://github.com/matthewdeanmartin/troml_dev_status/blob/main/CHANGELOG.md)
+
+## Python 3.15 wheel verification — 2026-10-04
+
+Windows Python 3.15.0rc3 remains blocked by mandatory PyYAML wheel availability, even allowing prereleases. Python 3.14 passes 105 tests with one skip. HTTPX is bounded below 1: its 1.0.dev6 API is incompatible with the existing PyPI client. Pydantic 2.14.0b2 wheels do exist on RC3, but do not fix the separate YAML blocker. Require published wheels rather than dependency source builds.
+
+
+## HTTPX2 verification (2026-10-04)
+
+Direct HTTP/2 clients now use HTTPX2. Python 3.14.7 passes 105 tests / 1 skip and installed-wheel startup. Complete RC3 stable/pre installation remains blocked by mandatory PyYAML wheels. The earlier HTTPX <1 workaround is superseded.
+
+Dependency installs require published wheels; no native builds or GitHub jobs. Experimental mode allows prereleases but the successful HTTPX2 test environments selected stable packages. Locks were upgraded with `uv lock --upgrade`. Changes are local; human operators decide publishing and upstream reports.

@@ -25,7 +25,7 @@ __dependencies__ = [
     "rich>=14.1.0",
     "pydantic>=2.12.0; python_version >= '3.14'",
     "pydantic>=2.11.9",
-    "httpx[http2]>=0.28.1",
+    "httpx2[http2]>=2.0,<3",
     "pyyaml>=6.0.2",
     "packaging>=25.0",
     "tomli>1.0.0; python_version < '3.11'",

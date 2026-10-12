@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import logging
 
-import httpx
+import httpx2
 
 logger = logging.getLogger(__name__)
 
@@ -14,7 +14,7 @@ def fetch_latest_supported_minor(*, timeout: float = 10.0) -> tuple[int, list[st
     Returns: (latest_minor_int, sources)
     """
     url = "https://endoflife.date/api/python.json"
-    with httpx.Client(
+    with httpx2.Client(
         timeout=timeout, headers={"User-Agent": "troml-dev-status/1.0"}
     ) as client:
         r = client.get(url)
