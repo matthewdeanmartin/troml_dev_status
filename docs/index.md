@@ -21,7 +21,6 @@ each user. This tool aims to change that by providing a consistent, verifiable r
 
 | Metric | Status |
 |-------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Coverage | [![codecov](https://codecov.io/gh/matthewdeanmartin/troml_dev_status/branch/main/graph/badge.svg)](https://codecov.io/gh/matthewdeanmartin/troml_dev_status) |
 | Docs | [![Docs](https://readthedocs.org/projects/troml_dev_status/badge/?version=latest)](https://troml_dev_status.readthedocs.io/en/latest/) |
 | PyPI | [![PyPI](https://img.shields.io/pypi/v/troml_dev_status)](https://pypi.org/project/troml_dev_status/) |
 | License | [![License](https://img.shields.io/github/license/matthewdeanmartin/troml_dev_status)](https://github.com/matthewdeanmartin/troml_dev_status/blob/main/LICENSE) |
