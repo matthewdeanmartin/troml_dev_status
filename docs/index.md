@@ -4,7 +4,7 @@
 
 This project is inspired by `troml` and the need for objective criteria for Python project maturity. It provides a
 deterministic, evidence-based method to suggest a `Development Status` classifier based on the rules outlined in
-the [draft PEP](pep.md).
+the [draft PEP](PEP.md).
 
 As far as I know, no python authority has given objective criteria for development status and the meaning is private to
 each user. This tool aims to change that by providing a consistent, verifiable rubric.

@@ -1,0 +1,57 @@
+{{ define "main" }}
+{{ $p := .Site.Params }}
+<header class="nav wrap">
+  <a class="wordmark" href="#top"><span class="mark">[ t ]</span> troml-dev-status</a>
+  <nav aria-label="Main navigation">
+    <a href="#method">Method</a>
+    <a href="#rubric">Rubric</a>
+    <a href="{{ $p.docs }}">Docs</a>
+    <a href="{{ $p.github }}">GitHub ↗</a>
+  </nav>
+</header>
+<main id="main">
+  <section id="top" class="hero wrap">
+    <div class="hero-copy">
+      <p class="eyebrow">PYTHON PACKAGE ASSESSMENT <span class="rule"></span> 01 / 03</p>
+      <h1>Development Status,<br><em>with receipts.</em></h1>
+      <p class="lead">Turn evidence in a package’s releases, repository, and metadata into a suggested PyPI Development Status classifier. See every check behind the result.</p>
+      <div class="actions"><a class="button" href="{{ $p.docs }}installation/">Get started <span aria-hidden="true">↗</span></a><a class="quiet" href="{{ $p.github }}">View source →</a></div>
+      <p class="install"><span>$</span> pipx install troml-dev-status</p>
+      <p class="detail">Python 3.11+ <span>·</span> CLI and library API <span>·</span> MIT license</p>
+    </div>
+    <div class="report" aria-label="Illustrative report excerpt">
+      <div class="report-head"><span>ASSESSMENT / SAMPLE</span><span>LOCAL PROJECT</span></div>
+      <div class="report-title">Development Status Analysis</div>
+      <div class="report-row labels"><span>CHECK</span><span>RESULT</span><span>EVIDENCE</span></div>
+      <div class="report-row"><span>R2 <small>Wheel + sdist</small></span><strong class="pass">PASS</strong><span>Both artifacts published</span></div>
+      <div class="report-row"><span>Q3 <small>Tests present</small></span><strong class="pass">PASS</strong><span>Test files found</span></div>
+      <div class="report-row"><span>C1 <small>Security policy</small></span><strong class="miss">MISS</strong><span>No SECURITY.md</span></div>
+      <div class="report-foot"><span>INFERRED CLASSIFIER</span><strong>4 / Beta</strong></div>
+      <p class="caption">Illustrative checks and result. Your report reflects your project.</p>
+    </div>
+  </section>
+  <section id="method" class="method-band"><div class="wrap">
+    <div class="section-heading"><p class="eyebrow">THE WORKFLOW <span class="rule"></span> 02 / 03</p><h2>Inspect. Explain. Decide.</h2><p>The tool gathers measurable signals, applies its published rubric, and reports the evidence behind each check.</p></div>
+    <div class="steps">
+      <article><span class="step-no">01</span><h3>Point it at a project</h3><p>Analyze a local Git repository with a <code>pyproject.toml</code>. Release checks also inspect its PyPI history.</p></article>
+      <article><span class="step-no">02</span><h3>Review the checks</h3><p>Inspect release, test, documentation, packaging, and maintenance evidence. Missing evidence appears as a failed check.</p></article>
+      <article><span class="step-no">03</span><h3>Use the result</h3><p>Print a human report or JSON, validate the declared classifier in CI, or update the classifier in <code>pyproject.toml</code>.</p></article>
+    </div>
+    <div class="command"><div><span class="command-label">TRY THE CLI</span><pre><code>troml-dev-status analyze /path/to/project
+troml-dev-status analyze /path/to/project --json
+troml-dev-status validate /path/to/project</code></pre></div><a href="{{ $p.docs }}usage/">All commands →</a></div>
+  </div></section>
+  <section id="rubric" class="rubric wrap">
+    <div class="section-heading"><p class="eyebrow">THE RUBRIC <span class="rule"></span> 03 / 03</p><h2>A classifier you can trace.</h2><p>Checks are grouped by the evidence they inspect. The <a href="{{ $p.docs }}rubric/">full rubric</a> defines each threshold.</p></div>
+    <div class="rubric-grid">
+      <article><span>R / RELEASE</span><h3>What shipped?</h3><p>Published versions, artifacts, version metadata, and release activity.</p></article>
+      <article><span>Q / QUALITY</span><h3>Can users verify it?</h3><p>CI, tests, type hints, documentation, and changelog evidence.</p></article>
+      <article><span>C / SUPPLY CHAIN</span><h3>Can it be reproduced?</h3><p>Security policy, trusted publishing, dependency declarations, and lockfiles.</p></article>
+      <article><span>M / MAINTENANCE</span><h3>Is it maintained?</h3><p>Project age and recent movement in the source tree.</p></article>
+    </div>
+    <div class="boundary"><strong>What this measures</strong><p>Observable project artifacts. It does not judge support promises, budgets, or the stability of a Python API. Use the report as evidence for a decision, with the <a href="{{ $p.docs }}status_mapping/">status mapping</a> in view.</p></div>
+  </section>
+  <section class="finish"><div class="wrap finish-inner"><div><p class="eyebrow">START WITH YOUR OWN REPOSITORY</p><h2>Find out what the evidence says.</h2></div><div class="finish-links"><a class="button light" href="{{ $p.docs }}installation/">Read installation guide ↗</a><a href="{{ $p.pypi }}">View on PyPI →</a></div></div></section>
+</main>
+<footer class="wrap footer"><span>troml-dev-status</span><nav aria-label="Footer"><a href="{{ $p.docs }}">Documentation</a><a href="{{ $p.github }}">GitHub</a><a href="{{ $p.github }}/blob/main/CHANGELOG.md">Changelog</a><a href="{{ $p.github }}/issues">Issues</a></nav></footer>
+{{ end }}

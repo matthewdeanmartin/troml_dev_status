@@ -165,7 +165,7 @@ make-docs:
 	pdoc {{PACKAGES}} --html -o docs --force
 
 check-md:
-	{{venv}} linkcheckMarkdown README.md
+	{{venv}} mkdocs build --strict
 	{{venv}} markdownlint README.md --config .markdownlintrc
 	{{venv}} mdformat README.md docs/*.md
 

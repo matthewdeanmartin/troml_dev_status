@@ -7,6 +7,6 @@ echo
 uv run mdformat .
 
 echo
-echo "Are the links okay?"
+echo "Checking documentation links and build"
 echo
-uv run linkcheckMarkdown .
+uv run mkdocs build --strict

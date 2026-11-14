@@ -1,0 +1,10 @@
+baseURL = "https://matthewdeanmartin.github.io/troml_dev_status/"
+locale = "en-us"
+title = "troml-dev-status"
+disableKinds = ["taxonomy", "term", "RSS"]
+
+[params]
+description = "Evidence-based Development Status classifiers for Python packages."
+docs = "https://troml-dev-status.readthedocs.io/en/latest/"
+github = "https://github.com/matthewdeanmartin/troml_dev_status"
+pypi = "https://pypi.org/project/troml-dev-status/"

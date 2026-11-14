@@ -109,7 +109,6 @@ dev = [
     "pydoctest==0.2.1",
     "pdoc3>=0.5.0",
     "mdformat>=0.5.0",
-    "linkcheckmd>=1.4.0",
     "codespell>=2.2.6",
     "pyenchant>=3.2.2",
 ]
@@ -119,7 +118,7 @@ Repository = "https://github.com/matthewdeanmartin/troml_dev_status"
 Documentation = "https://troml-dev-status.readthedocs.io/en/latest/"
 Changelog = "https://github.com/matthewdeanmartin/troml_dev_status/blob/main/CHANGELOG.md"
 
-homepage = "https://github.com/matthewdeanmartin/troml_dev_status"
+Homepage = "https://matthewdeanmartin.github.io/troml_dev_status/"
 issues = "https://github.com/matthewdeanmartin/troml_dev_status/issues/"
 
 

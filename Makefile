@@ -218,7 +218,7 @@ make_docs:
 
 .PHONY: check_md
 check_md:
-	$(VENV) linkcheckMarkdown README.md
+	$(VENV) mkdocs build --strict
 	$(VENV) markdownlint README.md --config .markdownlintrc
 	$(VENV) mdformat --check $(MARKDOWN_TARGETS)
 

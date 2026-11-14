@@ -53,7 +53,7 @@ Run the tool against a local Git repository that has a `pyproject.toml` file.
 troml-dev-status analyze /path/to/your/project 
 
 # fails if tool disagrees with your current development status
-troml-dev-status verify /path/to/your/project 
+troml-dev-status validate /path/to/your/project
 
 # updates pyproject.toml with current status
 troml-dev-status update /path/to/your/project 
@@ -118,7 +118,6 @@ The tool also prints a detailed JSON object containing the results of every chec
 
 | Metric | Status |
 |-------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Coverage | |
 | Docs | [![Docs](https://troml-dev-status.readthedocs.org/projects/troml_dev_status/badge/?version=latest)](https://troml-dev-status.readthedocs.io/en/latest/) |
 | PyPI | [![PyPI](https://img.shields.io/pypi/v/troml_dev_status)](https://pypi.org/project/troml-dev-status/) |
 | Downloads | [![Downloads](https://static.pepy.tech/personalized-badge/troml-dev-status?period=total&units=international_system&left_color=grey&right_color=blue&left_text=Downloads)](https://pepy.tech/project/troml_dev_status) |
@@ -171,19 +170,9 @@ See the [development_setup](https://github.com/matthewdeanmartin/troml_dev_statu
 
 ## Project Links
 
+- [Homepage](https://matthewdeanmartin.github.io/troml_dev_status/)
 - [GitHub](https://github.com/matthewdeanmartin/troml_dev_status)
 - [PyPI](https://pypi.org/project/troml-dev-status/)
 - [Documentation](https://troml-dev-status.readthedocs.io/en/latest/)
 - [Bug Tracker](https://github.com/matthewdeanmartin/troml_dev_status/issues)
 - [Change Log](https://github.com/matthewdeanmartin/troml_dev_status/blob/main/CHANGELOG.md)
-
-## Python 3.15 wheel verification — 2026-10-04
-
-Windows Python 3.15.0rc3 remains blocked by mandatory PyYAML wheel availability, even allowing prereleases. Python 3.14 passes 105 tests with one skip. HTTPX is bounded below 1: its 1.0.dev6 API is incompatible with the existing PyPI client. Pydantic 2.14.0b2 wheels do exist on RC3, but do not fix the separate YAML blocker. Require published wheels rather than dependency source builds.
-
-
-## HTTPX2 verification (2026-10-04)
-
-Direct HTTP/2 clients now use HTTPX2. Python 3.14.7 passes 105 tests / 1 skip and installed-wheel startup. Complete RC3 stable/pre installation remains blocked by mandatory PyYAML wheels. The earlier HTTPX <1 workaround is superseded.
-
-Dependency installs require published wheels; no native builds or GitHub jobs. Experimental mode allows prereleases but the successful HTTPX2 test environments selected stable packages. Locks were upgraded with `uv lock --upgrade`. Changes are local; human operators decide publishing and upstream reports.
